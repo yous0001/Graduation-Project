@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose, { model } from "mongoose";
 
 const recipeSchema = new mongoose.Schema({
     title: { 
@@ -38,7 +38,7 @@ const recipeSchema = new mongoose.Schema({
     updatedBy: {
         type:User,
         ref: 'User'
-    },
+    }
 },{timestamps:true});
 
 const Recipe = mongoose.models.Recipe || model('Recipe',recipeSchema)
