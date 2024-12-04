@@ -2,7 +2,7 @@ import sendmailservice from './../Services/sendMail.js';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import User from './../../../DB/models/user.model.js';
-import { loginVerificationEmailTemplete, resetPasswordSuccess, verificationEmailTemplate } from './../Services/emailTempletes.js';
+import { forgetPasswordRequestEmailTemplete, loginVerificationEmailTemplete, resetPasswordSuccess, verificationEmailTemplate } from './../Services/emailTempletes.js';
 import { generateVerificationCode } from '../../utils/generateVerificationCode.js';
 import crypto from 'crypto';
 
