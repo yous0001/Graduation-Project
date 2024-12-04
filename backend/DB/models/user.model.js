@@ -27,8 +27,7 @@ const userSchema = new mongoose.Schema({
         required: true,
     }],
     addresses: [{
-        type: String,
-        required: true
+        type: String
     }],
     role: {
         type: String,
@@ -49,19 +48,22 @@ const userSchema = new mongoose.Schema({
         default: false
     },
     favoriteRecipes: [{ 
-        type: Schema.Types.ObjectId,
+        type: mongoose.Types.ObjectId,
         ref: 'Recipe' 
     }],
     profileImage: { 
         //this is for uploading profile image on cloud
-        secure_url:{type:String,reqired:true},
-        public_id:{type:String,unique:true,required:true} 
+        secure_url:{type:String},
+        public_id:{type:String,unique:true} 
     },
     ownedIngredients:[{ 
-        type: Schema.Types.ObjectId,
+        type: mongoose.Types.ObjectId,
             ref: 'Ingredient' 
-    }] 
-
+    }],
+    resetPasswordToken:String,
+    resetPasswordExpires:Date,
+    verificationToken:String,
+    verificationTokenExpires:Date,
 },{timestamps:true});
 
 const User = mongoose.models.User || model('User',userSchema)

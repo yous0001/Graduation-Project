@@ -1,4 +1,4 @@
-const verificationEmailTemplate=`
+export const verificationEmailTemplate=`
     <!DOCTYPE html>
     <html lang="en">
     <head>
@@ -79,7 +79,7 @@ const verificationEmailTemplate=`
         <p>
             Need ingredients for your recipes? We've got you covered. Order fresh ingredients at the best prices directly from our app.
         </p>
-        <a href="#" class="cta-button">Start Exploring Recipes</a>
+        <a href="{{url}}" class="cta-button">Start Exploring Recipes</a>
         </div>
         <div class="footer">
         © 2024 Foodie's Paradise. All rights reserved.<br>

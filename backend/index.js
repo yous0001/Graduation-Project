@@ -1,7 +1,7 @@
 import express from 'express';
 import { config } from 'dotenv';
 import db_connection from './DB/connnection.js';
-import authRouter from './AuthRouter.js';
+import authRouter from './SRC/modules/Auth/auth.router.js';
 
 // Load environment variables from.env file
 config({path:"./config/dev.env"})
