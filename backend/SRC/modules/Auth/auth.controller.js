@@ -70,7 +70,7 @@ export const login = async(req,res,next)=>{
     if(!isPasswordMatch){
         return res.status(401).json({message:"Invalid credentials"});
     }
-    const token = jwt.sign({email},process.env.JWT_SECRET_VERFICATION,{expiresIn:'1d'})
+    const token = jwt.sign({email,id:user._id},process.env.JWT_SECRET_VERFICATION,{expiresIn:'1d'})
     return res.status(200).json({
         message:"login successful",
         token
