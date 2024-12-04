@@ -76,3 +76,10 @@ export const login = async(req,res,next)=>{
         token
     })
 }
+export const refreshToken =async (req,res,next) => {
+    const {_id}=req.user
+    const user =await userModel.findById(_id)
+    const newToken=jwt.sign({email:user.email,id:_id},process.env.JWT_SECRET_LOGIN,{expiresIn:"1d"})
+    
+    res.status(200).json({message:"new token has been created",newToken})
+}
