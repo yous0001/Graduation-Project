@@ -4,6 +4,7 @@ import bcrypt from 'bcryptjs';
 import User from './../../../DB/models/user.model.js';
 import { loginVerificationEmailTemplete, verificationEmailTemplate } from './../Services/emailTempletes.js';
 import { generateVerificationCode } from '../../utils/generateVerificationCode.js';
+import crypto from 'crypto';
 
 export const register = async(req,res,next)=>{
     const {name,email,password,phoneNumbers} = req.body;
@@ -80,7 +81,7 @@ export const login = async(req,res,next)=>{
 
     const verificationCode=generateVerificationCode();
     user.verificationCode = verificationCode;
-    user.verificationCodeExpires = Date.now() + 1000 * 60 * 5;
+    user.verificationCodeExpires = Date.now() + (1000 * 60 * 5);
     await user.save();
 
     const isCodeSent=await sendmailservice({
@@ -112,11 +113,42 @@ export const verifyLoginCode = async(req,res,next)=>{
 
     res.status(200).json({message:"login successful",token})
     }
-    
+
+
 export const refreshToken =async (req,res,next) => {
     const {_id}=req.user
     const user =await User.findById(_id)
     const newToken=jwt.sign({email:user.email,id:_id},process.env.JWT_SECRET_LOGIN,{expiresIn:"1d"})
     
     res.status(200).json({message:"new token has been created",newToken})
+}
+
+
+export const forgetPassword=async(req,res,next)=>{
+    const {email}=req.body;
+    try{
+        if(!email){
+            return res.status(400).json({success:false,message:"please provide email"})
+        }
+        const user=await User.findOne({email})
+        if(!user){
+            return res.status(404).json({
+                success:false,
+                message:"user not found"
+            })
+        }
+        const resetToken=crypto.randomBytes(20).toString('hex');
+        user.resetPasswordToken=resetToken;
+        user.resetPasswordExpires=Date.now() + (30*60*1000) //30 minutes
+        await user.save();
+        await sendmailservice({
+            to:user.email,
+            subject:'reset password',
+            message:forgetPasswordRequestEmailTemplete.replace(`{{reset_link}}`,`${req.protocol}://${req.headers.host}/auth/reset-password/${resetToken}`),
+            attachments:[]
+            })
+            return res.status(200).json({success:true,message:"reset password link sent successfully"})
+    }catch(err){
+        return res.status(500).json({success:false,message:err.message})
+    }
 }
