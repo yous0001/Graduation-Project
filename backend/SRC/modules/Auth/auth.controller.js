@@ -38,6 +38,22 @@ export const register = async(req,res,next)=>{
     });
 }
 
+
+
+export const verifyEmail=async(req,res,next)=>{
+    const {token}=req.query
+    const decodeddata=await jwt.verify(token,process.env.JWT_SECRET_VERFICATION)
+    const user =await User.findOneAndUpdate({email:decodeddata.email,isEmailVerified:false},{isEmailVerified:true},{new:true}).select("-password")
+    if(!user){
+        return next(new Error("user not found",{cause:404}))
+    }
+    res.status(200).json({
+        success:true,
+        message:"email verified succefully",
+        data:user
+    })
+}
+
 export const login = async()=>{
 
 }
