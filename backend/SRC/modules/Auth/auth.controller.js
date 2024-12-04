@@ -2,7 +2,8 @@ import sendmailservice from './../Services/sendMail.js';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import User from './../../../DB/models/user.model.js';
-import { verificationEmailTemplate } from './../Services/emailTempletes.js';
+import { loginVerificationEmailTemplete, verificationEmailTemplate } from './../Services/emailTempletes.js';
+import { generateVerificationCode } from '../../utils/generateVerificationCode.js';
 
 export const register = async(req,res,next)=>{
     const {name,email,password,phoneNumbers} = req.body;
@@ -42,8 +43,14 @@ export const register = async(req,res,next)=>{
 
 export const verifyEmail=async(req,res,next)=>{
     const {token}=req.query
-    const decodeddata=await jwt.verify(token,process.env.JWT_SECRET_VERFICATION)
-    const user =await User.findOneAndUpdate({email:decodeddata.email,isEmailVerified:false},{isEmailVerified:true},{new:true}).select("-password")
+    const decodedData=jwt.verify(token,process.env.JWT_SECRET_VERFICATION)
+
+    const user = await User.findOneAndUpdate(
+        { email: decodedData.email, isEmailVerified: false },
+        { isEmailVerified: true },
+        { new: true }
+    ).select("-password");
+
     if(!user){
         return next(new Error("user not found",{cause:404}))
     }
@@ -70,12 +77,42 @@ export const login = async(req,res,next)=>{
     if(!isPasswordMatch){
         return res.status(401).json({message:"Invalid credentials"});
     }
-    const token = jwt.sign({email,id:user._id},process.env.JWT_SECRET_LOGIN,{expiresIn:'1d'})
-    return res.status(200).json({
-        message:"login successful",
-        token
+
+    const verificationCode=generateVerificationCode();
+    user.verificationCode = verificationCode;
+    user.verificationCodeExpires = Date.now() + 1000 * 60 * 5;
+    await user.save();
+
+    const isCodeSent=await sendmailservice({
+        to:user.email,
+        subject:"please verify your account",
+        message:loginVerificationEmailTemplete.replace("{{code}}",verificationCode),
+        attachments:[]
     })
+
+    if(!isCodeSent){
+        return res.status(500).json({message:"failed to send verification email"});
+    }
+    res.status(200).json({message:"verification code sent successfully"});
 }
+
+export const verifyLoginCode = async(req,res,next)=>{
+    const {code}=req.body;
+
+    const user = await User.findOne({verificationCode:code,
+        verificationCodeExpires:{ $gt: Date.now() }});
+    if(!user){
+        return res.status(404).json({message:"Invalid verification code"});
+    }
+    user.verificationCode = null;
+    user.verificationCodeExpires = null;
+    await user.save();
+
+    const token=jwt.sign({email:user.email,id:user._id},process.env.JWT_SECRET_LOGIN,{expiresIn:"1d"})
+
+    res.status(200).json({message:"login successful",token})
+    }
+    
 export const refreshToken =async (req,res,next) => {
     const {_id}=req.user
     const user =await User.findById(_id)
