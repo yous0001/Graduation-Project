@@ -54,6 +54,25 @@ export const verifyEmail=async(req,res,next)=>{
     })
 }
 
-export const login = async()=>{
-
+export const login = async(req,res,next)=>{
+    const {email,password}=req.body;
+    if(!email||!password){
+        return res.status(400).json({message:"Please provide all required fields"});
+    }
+    const user = await User.findOne({email});
+    if(!user){
+        return res.status(401).json({message:"Invalid credentials"});
+    }
+    if(!user.isEmailVerified){
+        return res.status(401).json({message:"Please verify your email"});
+    }
+    const isPasswordMatch =await bcrypt.compare(password,user.password);
+    if(!isPasswordMatch){
+        return res.status(401).json({message:"Invalid credentials"});
+    }
+    const token = jwt.sign({email},process.env.JWT_SECRET_VERFICATION,{expiresIn:'1d'})
+    return res.status(200).json({
+        message:"login successful",
+        token
+    })
 }
