@@ -32,11 +32,11 @@ const recipeSchema = new mongoose.Schema({
         default: 0 
     },
     createdBy: {
-        type:User,
+        type:Schema.Types.ObjectId,
         ref: 'User'
     },
     updatedBy: {
-        type:User,
+        type:Schema.Types.ObjectId,
         ref: 'User'
     }
 },{timestamps:true});
