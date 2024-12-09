@@ -8,9 +8,6 @@ import crypto from 'crypto';
 
 export const register = async(req,res,next)=>{
     const {name,email,password,phoneNumbers} = req.body;
-    if(!email||!password||!phoneNumbers){
-        return res.status(400).json({message:"Please provide all required fields"});
-    }
     const isEmailExists = await User.findOne({email});
     if(isEmailExists){
         return res.status(400).json({message:"email already exists"});    
@@ -107,6 +104,7 @@ export const verifyLoginCode = async(req,res,next)=>{
     }
     user.verificationCode = null;
     user.verificationCodeExpires = null;
+    user.isLoggedIn=true;
     await user.save();
 
     const token=jwt.sign({email:user.email,id:user._id},process.env.JWT_SECRET_LOGIN,{expiresIn:"1d"})
