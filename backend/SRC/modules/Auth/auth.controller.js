@@ -8,9 +8,6 @@ import crypto from 'crypto';
 
 export const register = async(req,res,next)=>{
     const {name,email,password,phoneNumbers} = req.body;
-    if(!email||!password||!phoneNumbers){
-        return res.status(400).json({message:"Please provide all required fields"});
-    }
     const isEmailExists = await User.findOne({email});
     if(isEmailExists){
         return res.status(400).json({message:"email already exists"});    

@@ -4,7 +4,6 @@ export const validationMiddleware=(schema)=>{
         let validationErrors =[];
         for(const key of reqKeys){
             const validationResult=schema[key]?.validate(req[key],{abortEarly:false})
-
             if(validationResult?.error){
                 validationErrors.push(validationResult.error.details);
             }
