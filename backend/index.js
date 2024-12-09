@@ -5,8 +5,10 @@ import authRouter from './SRC/modules/Auth/auth.router.js';
 import categoryRouter from './SRC/modules/Category/category.router.js';
 import { globalResponse } from './SRC/middlewares/globalResponce.js';
 
-// Load environment variables from.env file
-config({path:"./config/dev.env"})
+
+if (process.env.NODE_ENV !== 'production') {
+    config({ path: './config/dev.env' });
+}
 
 const app = express();
 const port = process.env.PORT;

@@ -1,6 +1,9 @@
 import nanomailer from "nodemailer"
 import { config } from "dotenv";
-config({path:"./config/dev.env"})
+
+if (process.env.NODE_ENV !== 'production') {
+    config({ path: './config/dev.env' });
+}
 
 
 const sendmailservice=async({ to = '', subject = 'no-reply', message = '<h1>Hello World</h1>', attachments = [] })=>{
