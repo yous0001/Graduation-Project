@@ -104,6 +104,7 @@ export const verifyLoginCode = async(req,res,next)=>{
     }
     user.verificationCode = null;
     user.verificationCodeExpires = null;
+    user.isLoggedIn=true;
     await user.save();
 
     const token=jwt.sign({email:user.email,id:user._id},process.env.JWT_SECRET_LOGIN,{expiresIn:"1d"})
