@@ -20,5 +20,8 @@ app.use(globalResponse)
 
 db_connection();
 
+app.get('/test',(req, res) => {
+    res.json({message:"test endpoint"})
+})
 app.listen(port, ()=>{
     console.log(`app is running on port ${port}`)});
