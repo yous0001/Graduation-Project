@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken'
 import User  from "../../DB/models/user.model.js"; 
-import { systemRoles } from "../../src/utils/system-roles.js";
+import { systemRoles } from "../../SRC/utils/system-roles.js";
 
 
 export const auth = (accessRoles = [systemRoles.USER, systemRoles.ADMIN, systemRoles.DELIVERY]) => {
