@@ -54,7 +54,7 @@ const userSchema = new mongoose.Schema({
     profileImage: { 
         //this is for uploading profile image on cloud
         secure_url:{type:String},
-        public_id:{type:String,unique:true} 
+        public_id:{type:String} 
     },
     ownedIngredients:[{ 
         type: mongoose.Types.ObjectId,
