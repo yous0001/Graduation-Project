@@ -13,7 +13,7 @@ router.post("/login",validationMiddleware(authSchemaes.loginSchema), expressAsyn
 router.get("/refresh-token", auth(),expressAsyncHandler(authController.refreshToken))
 router.get("/verify-login",validationMiddleware(authSchemaes.verifyLoginSchema),expressAsyncHandler(authController.verifyLoginCode))
 
-router.get("/forget-password", expressAsyncHandler(authController.forgetPassword))
+router.get("/forget-password", validationMiddleware(authSchemaes.forgetPasswordSchema),expressAsyncHandler(authController.forgetPassword))
 router.get("/reset-password/:token", expressAsyncHandler(authController.resetPassword))
 
 export default router

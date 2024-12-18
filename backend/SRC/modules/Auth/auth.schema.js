@@ -25,3 +25,8 @@ export const verifyLoginSchema={
             code: Joi.string().min(6).max(6).required(),
         })
 }
+export const forgetPasswordSchema={
+    body:Joi.object({
+            email: Joi.string().email().required()
+        })
+}
