@@ -8,10 +8,10 @@ import { validationMiddleware } from "../../middlewares/validation.middleware.js
 const router=Router()
 
 router.post("/register", validationMiddleware(authSchemaes.registerSchema),expressAsyncHandler(authController.register))
-router.get("/verify-email", expressAsyncHandler(authController.verifyEmail))
+router.get("/verify-email", validationMiddleware(authSchemaes.verifyEmailSchema),expressAsyncHandler(authController.verifyEmail))
 router.post("/login",validationMiddleware(authSchemaes.loginSchema), expressAsyncHandler(authController.login))
 router.get("/refresh-token", auth(),expressAsyncHandler(authController.refreshToken))
-router.get("/verify-login",expressAsyncHandler(authController.verifyLoginCode))
+router.get("/verify-login",validationMiddleware(authSchemaes.verifyLoginSchema),expressAsyncHandler(authController.verifyLoginCode))
 
 router.get("/forget-password", expressAsyncHandler(authController.forgetPassword))
 router.get("/reset-password/:token", expressAsyncHandler(authController.resetPassword))

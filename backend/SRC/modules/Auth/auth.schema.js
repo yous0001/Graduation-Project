@@ -15,3 +15,13 @@ export const loginSchema={
             password: Joi.string().min(8).required(),
         })
 }
+export const verifyEmailSchema={
+    query:Joi.object({
+            token: Joi.string().required()
+        })
+}
+export const verifyLoginSchema={
+    body:Joi.object({
+            code: Joi.string().min(6).max(6).required(),
+        })
+}
