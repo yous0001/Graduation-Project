@@ -9,7 +9,7 @@ const router=Router()
 
 router.post("/register", validationMiddleware(authSchemaes.registerSchema),expressAsyncHandler(authController.register))
 router.get("/verify-email", expressAsyncHandler(authController.verifyEmail))
-router.post("/login", expressAsyncHandler(authController.login))
+router.post("/login",validationMiddleware(authSchemaes.loginSchema), expressAsyncHandler(authController.login))
 router.get("/refresh-token", auth(),expressAsyncHandler(authController.refreshToken))
 router.get("/verify-login",expressAsyncHandler(authController.verifyLoginCode))
 
