@@ -30,3 +30,11 @@ export const forgetPasswordSchema={
             email: Joi.string().email().required()
         })
 }
+export const resetPasswordSchema={
+    body:Joi.object({
+            password: Joi.string().min(8).regex(passwordRegex).required(),
+        }),
+    params:Joi.object({
+        token: Joi.string().required()
+    })
+}

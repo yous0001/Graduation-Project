@@ -14,6 +14,6 @@ router.get("/refresh-token", auth(),expressAsyncHandler(authController.refreshTo
 router.get("/verify-login",validationMiddleware(authSchemaes.verifyLoginSchema),expressAsyncHandler(authController.verifyLoginCode))
 
 router.get("/forget-password", validationMiddleware(authSchemaes.forgetPasswordSchema),expressAsyncHandler(authController.forgetPassword))
-router.get("/reset-password/:token", expressAsyncHandler(authController.resetPassword))
+router.get("/reset-password/:token",validationMiddleware(authSchemaes.resetPasswordSchema), expressAsyncHandler(authController.resetPassword))
 
 export default router
