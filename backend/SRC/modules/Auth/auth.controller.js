@@ -183,3 +183,33 @@ export const resetPassword=async(req,res,next)=>{
     }
 
 }
+export const resendOtp=async(req,res,next)=>{
+    const {email}=req.body;
+    if(!email){
+        return res.status(400).json({message:"Please email is required"});
+    }
+    const user = await User.findOne({email});
+    if(!user){
+        return res.status(401).json({message:"uncorrect email address"});
+    }
+   
+    if(new Date(user.verificationCodeExpires+(1000 * 60 * 10)).getTime() < Date.now()){
+        return res.status(400).json({message:"you can resend otp only within 10 minutes"});
+    }
+    const verificationCode=generateVerificationCode();
+    user.verificationCode = verificationCode;
+    user.verificationCodeExpires = Date.now() + (1000 * 60 * 5);
+    await user.save();
+
+    const isCodeSent=await sendmailservice({
+        to:user.email,
+        subject:"resend otp to verify your account",
+        message:loginVerificationEmailTemplete.replace("{{code}}",verificationCode),
+        attachments:[]
+    })
+
+    if(!isCodeSent){
+        return res.status(500).json({message:"failed to resend verification email"});
+    }
+    res.status(200).json({message:"otp code resent successfully"});
+}

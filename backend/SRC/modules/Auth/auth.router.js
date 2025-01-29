@@ -11,6 +11,7 @@ router.post("/register", validationMiddleware(authSchemaes.registerSchema),expre
 router.get("/verify-email", validationMiddleware(authSchemaes.verifyEmailSchema),expressAsyncHandler(authController.verifyEmail))
 router.post("/login",validationMiddleware(authSchemaes.loginSchema), expressAsyncHandler(authController.login))
 router.get("/refresh-token", auth(),expressAsyncHandler(authController.refreshToken))
+router.get("/resend-otp",expressAsyncHandler(authController.resendOtp))
 router.get("/verify-login",validationMiddleware(authSchemaes.verifyLoginSchema),expressAsyncHandler(authController.verifyLoginCode))
 
 router.get("/forget-password", validationMiddleware(authSchemaes.forgetPasswordSchema),expressAsyncHandler(authController.forgetPassword))
