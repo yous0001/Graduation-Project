@@ -213,3 +213,8 @@ export const resendOtp=async(req,res,next)=>{
     }
     res.status(200).json({message:"otp code resent successfully"});
 }
+export const getProfile = async function (req, res, next) {
+    const user = req.user;
+    user.password="hidden"
+    res.status(200).json(user);
+  };
