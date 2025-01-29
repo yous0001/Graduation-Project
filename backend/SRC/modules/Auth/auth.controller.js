@@ -220,6 +220,9 @@ export const getProfile = async function (req, res, next) {
   };
 export const deleteUser = async function (req, res, next) {
     const user = req.user;
-    User.findByIdAndDelete(user._id);
+    const deletedUser =await User.findByIdAndDelete(user._id);
+    if (!deletedUser) {
+        return res.status(404).json({ message: "user deletetion failed" });
+    }
     res.status(200).json({message:"user deleted successfully",message2:"في 60 الف داهيه"});
   };
