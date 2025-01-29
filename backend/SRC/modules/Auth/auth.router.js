@@ -14,6 +14,7 @@ router.get("/refresh-token", auth(),expressAsyncHandler(authController.refreshTo
 router.get("/resend-otp",expressAsyncHandler(authController.resendOtp))
 router.get("/verify-login",validationMiddleware(authSchemaes.verifyLoginSchema),expressAsyncHandler(authController.verifyLoginCode))
 router.get("/get-profile",auth(),expressAsyncHandler(authController.getProfile))
+router.delete("/delete-user",auth(),expressAsyncHandler(authController.deleteUser))
 
 router.get("/forget-password", validationMiddleware(authSchemaes.forgetPasswordSchema),expressAsyncHandler(authController.forgetPassword))
 router.get("/reset-password/:token",validationMiddleware(authSchemaes.resetPasswordSchema), expressAsyncHandler(authController.resetPassword))

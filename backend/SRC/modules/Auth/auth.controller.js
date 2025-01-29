@@ -218,3 +218,8 @@ export const getProfile = async function (req, res, next) {
     user.password="hidden"
     res.status(200).json(user);
   };
+export const deleteUser = async function (req, res, next) {
+    const user = req.user;
+    User.findByIdAndDelete(user._id);
+    res.status(200).json({message:"user deleted successfully",message2:"في 60 الف داهيه"});
+  };
