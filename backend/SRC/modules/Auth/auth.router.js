@@ -8,12 +8,15 @@ import { validationMiddleware } from "../../middlewares/validation.middleware.js
 const router=Router()
 
 router.post("/register", validationMiddleware(authSchemaes.registerSchema),expressAsyncHandler(authController.register))
-router.get("/verify-email", expressAsyncHandler(authController.verifyEmail))
-router.post("/login", expressAsyncHandler(authController.login))
+router.get("/verify-email", validationMiddleware(authSchemaes.verifyEmailSchema),expressAsyncHandler(authController.verifyEmail))
+router.post("/login",validationMiddleware(authSchemaes.loginSchema), expressAsyncHandler(authController.login))
 router.get("/refresh-token", auth(),expressAsyncHandler(authController.refreshToken))
-router.get("/verify-login",expressAsyncHandler(authController.verifyLoginCode))
+router.get("/resend-otp",expressAsyncHandler(authController.resendOtp))
+router.get("/verify-login",validationMiddleware(authSchemaes.verifyLoginSchema),expressAsyncHandler(authController.verifyLoginCode))
+router.get("/get-profile",auth(),expressAsyncHandler(authController.getProfile))
+router.delete("/delete-user",auth(),expressAsyncHandler(authController.deleteUser))
 
-router.get("/forget-password", expressAsyncHandler(authController.forgetPassword))
-router.get("/reset-password/:token", expressAsyncHandler(authController.resetPassword))
+router.get("/forget-password", validationMiddleware(authSchemaes.forgetPasswordSchema),expressAsyncHandler(authController.forgetPassword))
+router.get("/reset-password/:token",validationMiddleware(authSchemaes.resetPasswordSchema), expressAsyncHandler(authController.resetPassword))
 
 export default router
