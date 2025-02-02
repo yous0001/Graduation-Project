@@ -17,6 +17,7 @@ router.get("/resend-otp",expressAsyncHandler(authController.resendOtp))
 router.get("/verify-login",validationMiddleware(authSchemaes.verifyLoginSchema),expressAsyncHandler(authController.verifyLoginCode))
 router.get("/get-profile",auth(),expressAsyncHandler(authController.getProfile))
 router.delete("/delete-user",auth(),expressAsyncHandler(authController.deleteUser))
+router.delete("/delete-profileImg",auth(),expressAsyncHandler(authController.deleteProfileImg))
 router.post("/upload-profileImg",auth(),multerMiddleHost({extensions:allowedExtensions.image}).single("profileImg"),expressAsyncHandler(authController.uploadProfileImg))
 
 router.get("/forget-password", validationMiddleware(authSchemaes.forgetPasswordSchema),expressAsyncHandler(authController.forgetPassword))
