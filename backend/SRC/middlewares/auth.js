@@ -20,7 +20,6 @@ export const auth = (accessRoles = [systemRoles.USER, systemRoles.ADMIN, systemR
             const token = accessToken.split(process.env.TOKEN_PREFIX)[1];
             
             const decodedData = jwt.verify(token, process.env.JWT_SECRET_LOGIN);
-            console.log(decodedData);
             
             if (!decodedData || !decodedData.id) {
                 return res.status(400).json({ message: "Invalid token payload" });

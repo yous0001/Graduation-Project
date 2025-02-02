@@ -5,6 +5,7 @@ import User from './../../../DB/models/user.model.js';
 import { forgetPasswordRequestEmailTemplete, loginVerificationEmailTemplete, resetPasswordSuccess, verificationEmailTemplate } from './../Services/emailTempletes.js';
 import { generateVerificationCode } from '../../utils/generateVerificationCode.js';
 import crypto from 'crypto';
+import { cloudinaryConfig } from './../../utils/cloudinary.utils.js';
 
 export const register = async(req,res,next)=>{
     const {name,email,password,phoneNumbers} = req.body;
@@ -227,3 +228,27 @@ export const deleteUser = async function (req, res, next) {
     res.status(200).json({message:"user deleted successfully",message2:"في 60 الف داهيه"});
   };
 
+export const uploadProfileImg = async(req, res, next)=>{
+    const user = req.user;
+    const file = req.file;
+    if(!file){
+        return res.status(400).json({message:"please provide profile image"});
+    }
+
+    const uploadedImg=await cloudinaryConfig().uploader.upload(file.path,{
+        folder:"recipesSystem/users",
+        resource_type:"image",
+        tags:["profile","image"],
+        public_id: user.profileImage?.public_id || undefined
+    });
+    if(!uploadedImg.secure_url){
+        return res.status(500).json({message:"failed to upload profile image"});
+    }
+    user.profileImage={
+        public_id:uploadedImg.public_id,
+        secure_url:uploadedImg.secure_url
+    }
+    await user.save();
+    user.password="hidden"
+    res.status(200).json({message:"profile image uploaded successfully",user})
+}
