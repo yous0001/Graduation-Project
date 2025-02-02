@@ -20,6 +20,8 @@ router.delete("/delete-user",auth(),expressAsyncHandler(authController.deleteUse
 router.delete("/delete-profileImg",auth(),expressAsyncHandler(authController.deleteProfileImg))
 router.post("/upload-profileImg",auth(),multerMiddleHost({extensions:allowedExtensions.image}).single("profileImg"),expressAsyncHandler(authController.uploadProfileImg))
 router.put("/change-password",auth(),validationMiddleware(authSchemaes.changePasswordSchema),expressAsyncHandler(authController.changePassword))
+router.put("/update-user",auth(),validationMiddleware(authSchemaes.updateUserSchema),expressAsyncHandler(authController.updateUser))
+
 
 router.get("/forget-password", validationMiddleware(authSchemaes.forgetPasswordSchema),expressAsyncHandler(authController.forgetPassword))
 router.get("/reset-password/:token",validationMiddleware(authSchemaes.resetPasswordSchema), expressAsyncHandler(authController.resetPassword))

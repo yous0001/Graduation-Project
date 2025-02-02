@@ -107,3 +107,36 @@ export const loginSchema = {
         }),
     }),
   }
+
+  export const updateUserSchema={
+    body: Joi.object({
+        name: Joi.string().min(3).max(50).optional().messages({
+            "string.base": "Name must be a string.",
+            "string.min": "Name must be at least 3 characters long.",
+            "string.max": "Name must not exceed 50 characters."
+        }),
+        phoneNumbers: Joi.array()
+        .items(Joi.string().length(11).pattern(/^01[0-25]\d{8}$/).messages({
+            "string.base": "Phone number must be a string.",
+            "string.length": "Phone number must be exactly 11 digits.",
+            "string.pattern.base": "Phone number must be a valid Egyptian phone number.",
+        }))
+        .optional()
+        .messages({
+            "array.base": "Phone numbers must be an array."
+        }),
+        addresses: Joi.array()
+        .items(Joi.string().min(3).max(50).messages({
+            "string.base": "Address must be a string.",
+            "string.min": "Address must be at least 3 characters long.",
+            "string.max": "Address must not exceed 50 characters."
+        }))
+        .optional()
+        .messages({
+            "array.base": "Addresses must be an array."
+        }),
+        age: Joi.number().optional().messages({
+            "number.base": "Age must be a number."
+        })
+    }),
+  }

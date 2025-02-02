@@ -278,3 +278,20 @@ export const changePassword = async(req, res, next)=>{
     await user.save();
     res.status(200).json({message:"password changed successfully"});
 }
+
+export const updateUser = async(req, res, next)=>{
+    const user = req.user;
+    const {name,email,phoneNumbers,age,address}=req.body;
+    if(name)
+        user.name=name;
+    if(email)
+        user.email=email;
+    if(phoneNumbers)
+        user.phoneNumbers=phoneNumbers;
+    if(age)
+        user.age=age;
+    if(address)
+        user.address=address;
+    await user.save();
+    res.status(200).json({message:"user updated successfully",user});
+}
