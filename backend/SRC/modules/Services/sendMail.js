@@ -18,7 +18,7 @@ const sendmailservice=async({ to = '', subject = 'no-reply', message = '<h1>Hell
         }
     })
     const info = await transporter.sendMail({
-        from: `"hello" <${process.env.EMAIL}>`, 
+        from: `"reciplore" <${process.env.EMAIL}>`, 
         to, 
         subject,  
         html:message, 
