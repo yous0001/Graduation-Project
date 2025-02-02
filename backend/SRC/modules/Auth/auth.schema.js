@@ -93,3 +93,17 @@ export const loginSchema = {
         }),
     }),
   };
+
+  export const changePasswordSchema={
+    body: Joi.object({
+        oldPassword: Joi.string().required().messages({
+            "any.required": "Old password is required.",
+        }),
+        newPassword: Joi.string().min(8).regex(passwordRegex).required().messages({
+            "string.pattern.base":
+            "Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, one number, and one special character.",
+            "string.min": "Password must be at least 8 characters long.",
+            "any.required": "Password is required.",
+        }),
+    }),
+  }

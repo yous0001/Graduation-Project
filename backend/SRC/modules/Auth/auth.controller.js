@@ -266,3 +266,15 @@ export const deleteProfileImg = async(req, res, next)=>{
     await user.save();
     res.status(200).json({message:"profile image deleted successfully",deletedImg})
 }
+
+export const changePassword = async(req, res, next)=>{
+    const user = req.user;
+    const {oldPassword, newPassword}=req.body;
+    const isPasswordMatch =await bcrypt.compare(oldPassword, user.password);
+    if(!isPasswordMatch)
+        return res.status(400).json({message:"old password is incorrect"});
+    const hashedPassword=await bcrypt.hash(newPassword,+process.env.SALT_ROUNDS);
+    user.password=hashedPassword;
+    await user.save();
+    res.status(200).json({message:"password changed successfully"});
+}
