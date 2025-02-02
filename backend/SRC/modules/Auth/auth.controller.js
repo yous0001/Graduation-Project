@@ -226,3 +226,4 @@ export const deleteUser = async function (req, res, next) {
     }
     res.status(200).json({message:"user deleted successfully",message2:"في 60 الف داهيه"});
   };
+

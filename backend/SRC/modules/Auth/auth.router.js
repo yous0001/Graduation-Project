@@ -4,6 +4,7 @@ import * as authController from "./auth.controller.js"
 import * as authSchemaes from "./auth.schema.js"
 import { auth } from "../../middlewares/auth.js";
 import { validationMiddleware } from "../../middlewares/validation.middleware.js";
+import { multerMiddleHost } from "../../middlewares/multer.js";
 
 const router=Router()
 
@@ -15,6 +16,7 @@ router.get("/resend-otp",expressAsyncHandler(authController.resendOtp))
 router.get("/verify-login",validationMiddleware(authSchemaes.verifyLoginSchema),expressAsyncHandler(authController.verifyLoginCode))
 router.get("/get-profile",auth(),expressAsyncHandler(authController.getProfile))
 router.delete("/delete-user",auth(),expressAsyncHandler(authController.deleteUser))
+router.post("/upload-profileImg",auth(),multerMiddleHost(),expressAsyncHandler(authController.uploadProfileImg))
 
 router.get("/forget-password", validationMiddleware(authSchemaes.forgetPasswordSchema),expressAsyncHandler(authController.forgetPassword))
 router.get("/reset-password/:token",validationMiddleware(authSchemaes.resetPasswordSchema), expressAsyncHandler(authController.resetPassword))

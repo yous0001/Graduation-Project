@@ -57,12 +57,7 @@ export const multerMiddleHost = ({
 
 
     // diskStorage
-    const storage = multer.diskStorage({
-        filename: (req, file, cb) => {
-            const uniqueFileName = generateUniqueString(6) + '_' + file.originalname
-            cb(null, uniqueFileName)
-        }
-    })
+    const storage = multer.diskStorage({})
 
     // file Filter
     const fileFilter = (req, file, cb) => {
