@@ -4,6 +4,7 @@ import db_connection from './DB/connnection.js';
 import authRouter from './SRC/modules/Auth/auth.router.js';
 import categoryRouter from './SRC/modules/Category/category.router.js';
 import { globalResponse } from './SRC/middlewares/globalResponce.js';
+import { cloudinaryConfig } from './SRC/utils/cloudinary.utils.js';
 
 
 if (process.env.NODE_ENV !== 'production') {
@@ -22,6 +23,10 @@ db_connection();
 
 app.get('/test',(req, res) => {
     res.json({message:"test endpoint"})
+})
+app.get('/test-upload',async (req, res) => {
+    const result = await cloudinaryConfig().api.ping()
+    res.json(result)
 })
 app.listen(port, ()=>{
     console.log(`app is running on port ${port}`)});
