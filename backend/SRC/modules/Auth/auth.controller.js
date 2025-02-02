@@ -5,6 +5,7 @@ import User from './../../../DB/models/user.model.js';
 import { forgetPasswordRequestEmailTemplete, loginVerificationEmailTemplete, resetPasswordSuccess, verificationEmailTemplate } from './../Services/emailTempletes.js';
 import { generateVerificationCode } from '../../utils/generateVerificationCode.js';
 import crypto from 'crypto';
+import { cloudinaryConfig } from './../../utils/cloudinary.utils.js';
 
 export const register = async(req,res,next)=>{
     const {name,email,password,phoneNumbers} = req.body;
@@ -226,3 +227,42 @@ export const deleteUser = async function (req, res, next) {
     }
     res.status(200).json({message:"user deleted successfully",message2:"في 60 الف داهيه"});
   };
+
+export const uploadProfileImg = async(req, res, next)=>{
+    const user = req.user;
+    const file = req.file;
+    if(!file){
+        return res.status(400).json({message:"please provide profile image"});
+    }
+    if(user.profileImage?.public_id){
+        await cloudinaryConfig().uploader.destroy(user.profileImage.public_id);
+    }
+    const uploadedImg=await cloudinaryConfig().uploader.upload(file.path,{
+        folder:"recipesSystem/users",
+        resource_type:"image",
+        tags:["profile","image"]
+    });
+    if(!uploadedImg.secure_url){
+        return res.status(500).json({message:"failed to upload profile image"});
+    }
+    user.profileImage={
+        public_id:uploadedImg.public_id,
+        secure_url:uploadedImg.secure_url
+    }
+    await user.save();
+    user.password="hidden"
+    res.status(200).json({message:"profile image uploaded successfully",user})
+}
+
+export const deleteProfileImg = async(req, res, next)=>{
+    const user = req.user;
+    if(!user.profileImage?.public_id)
+        return res.status(400).json({message:"no profile image to delete"});
+
+    const deletedImg=await cloudinaryConfig().uploader.destroy(user.profileImage?.public_id);
+    if(deletedImg.result!='ok')//check if image deleted
+        return res.status(400).json({message:"error", error:deletedImg.result})
+    user.profileImage=null
+    await user.save();
+    res.status(200).json({message:"profile image deleted successfully",deletedImg})
+}
