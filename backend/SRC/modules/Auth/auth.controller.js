@@ -235,8 +235,9 @@ export const getProfile = async function (req, res, next) {
     if (!user) {
         return res.status(404).json({ message: "user not found" });
     }
+    
     user=user.toObject();
-    delete user.profileImage.public_id
+    delete user.profileImage?.public_id
     delete user.password;
     delete user.isEmailVerified
     delete user.isLoggedIn
