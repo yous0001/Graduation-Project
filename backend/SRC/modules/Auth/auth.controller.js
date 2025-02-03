@@ -231,8 +231,18 @@ export const resendOtp=async(req,res,next)=>{
     res.status(200).json({message:"otp code resent successfully"});
 }
 export const getProfile = async function (req, res, next) {
-    const user = req.user;
-    user.password="hidden"
+    let user = req.user;
+    user=user.toObject();
+    delete user.profileImage.public_id
+    delete user.password;
+    delete user.isEmailVerified
+    delete user.isLoggedIn
+    delete user.verificationCode
+    delete user.verificationCodeExpires
+    delete user.resetPasswordExpires
+    delete user.resetPasswordToken
+    delete user.favoriteRecipes
+    delete user.ownedIngredients
     res.status(200).json(user);
   };
 export const deleteUser = async function (req, res, next) {
@@ -297,11 +307,9 @@ export const changePassword = async(req, res, next)=>{
 
 export const updateUser = async(req, res, next)=>{
     const user = req.user;
-    const {name,email,phoneNumbers,age,address}=req.body;
+    const {name,phoneNumbers,age,address}=req.body;
     if(name)
         user.name=name;
-    if(email)
-        user.email=email;
     if(phoneNumbers)
         user.phoneNumbers=phoneNumbers;
     if(age)
