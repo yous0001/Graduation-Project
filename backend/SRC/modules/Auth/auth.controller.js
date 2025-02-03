@@ -232,6 +232,9 @@ export const resendOtp=async(req,res,next)=>{
 }
 export const getProfile = async function (req, res, next) {
     let user = req.user;
+    if (!user) {
+        return res.status(404).json({ message: "user not found" });
+    }
     user=user.toObject();
     delete user.profileImage.public_id
     delete user.password;
