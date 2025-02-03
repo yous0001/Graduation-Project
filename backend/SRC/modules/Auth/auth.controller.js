@@ -33,8 +33,7 @@ export const register = async(req,res,next)=>{
     newUser = newUser.toObject();
     delete newUser.password;
     return res.status(201).json({
-        message:"user created successfully",
-        newUser
+        message:"user created successfully"
     });
 }
 
@@ -48,7 +47,7 @@ export const verifyEmail=async(req,res,next)=>{
         { email: decodedData.email, isEmailVerified: false },
         { isEmailVerified: true },
         { new: true }
-    ).select("-password");
+    ).select("-password -isEmailVerified -verificationCode -verificationCodeExpires -resetPasswordToken -resetPasswordExpires -favoriteRecipes -ownedIngredients");
 
     if(!user){
         return next(new Error("user not found",{cause:404}))
@@ -280,8 +279,7 @@ export const uploadProfileImg = async(req, res, next)=>{
         secure_url:uploadedImg.secure_url
     }
     await user.save();
-    user.password="hidden"
-    res.status(200).json({message:"profile image uploaded successfully",user})
+    res.status(200).json({message:"profile image uploaded successfully"})
 }
 
 export const deleteProfileImg = async(req, res, next)=>{
@@ -294,7 +292,7 @@ export const deleteProfileImg = async(req, res, next)=>{
         return res.status(400).json({message:"error", error:deletedImg.result})
     user.profileImage=null
     await user.save();
-    res.status(200).json({message:"profile image deleted successfully",deletedImg})
+    res.status(200).json({message:"profile image deleted successfully"})
 }
 
 export const changePassword = async(req, res, next)=>{
@@ -310,7 +308,7 @@ export const changePassword = async(req, res, next)=>{
 }
 
 export const updateUser = async(req, res, next)=>{
-    const user = req.user;
+    let user = req.user;
     const {name,phoneNumbers,age,address}=req.body;
     if(name)
         user.name=name;
@@ -321,5 +319,16 @@ export const updateUser = async(req, res, next)=>{
     if(address)
         user.address=address;
     await user.save();
+    user=user.toObject();
+    delete user.profileImage?.public_id
+    delete user.password;
+    delete user.isEmailVerified
+    delete user.isLoggedIn
+    delete user.verificationCode
+    delete user.verificationCodeExpires
+    delete user.resetPasswordExpires
+    delete user.resetPasswordToken
+    delete user.favoriteRecipes
+    delete user.ownedIngredients
     res.status(200).json({message:"user updated successfully",user});
 }

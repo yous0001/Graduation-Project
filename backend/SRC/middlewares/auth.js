@@ -19,7 +19,18 @@ export const auth = (accessRoles = [systemRoles.USER, systemRoles.ADMIN, systemR
 
             const token = accessToken.split(process.env.TOKEN_PREFIX)[1];
             
-            const decodedData = jwt.verify(token, process.env.JWT_SECRET_LOGIN);
+            let decodedData;
+            try {
+                decodedData = jwt.verify(token, process.env.JWT_SECRET_LOGIN);
+            } catch (err) {
+                if (err.name === "TokenExpiredError") {
+                    return res.status(401).json({ message: "Token has expired. Please login again." });
+                }
+                if (err.name === "JsonWebTokenError") {
+                    return res.status(400).json({ message: "Invalid token." });
+                }
+                return res.status(500).json({ message: "Authentication error", error: err.message });
+            }
             
             if (!decodedData || !decodedData.id) {
                 return res.status(400).json({ message: "Invalid token payload" });
