@@ -108,18 +108,34 @@ export const verifyLoginCode = async(req,res,next)=>{
     user.isLoggedIn=true;
     await user.save();
 
-    const token=jwt.sign({email:user.email,id:user._id},process.env.JWT_SECRET_LOGIN,{expiresIn:"1d"})
+    const accessToken=jwt.sign({email:user.email,id:user._id},process.env.JWT_SECRET_LOGIN,{expiresIn:"1d"})
+    const refreshToken=jwt.sign({id:user._id},process.env.JWT_SECRET_refresh,{expiresIn:"6d"})
 
-    res.status(200).json({message:"login successful",token})
+    res.status(200).json({message:"login successful",accessToken:accessToken,refreshToken})
     }
 
 
 export const refreshToken =async (req,res,next) => {
-    const {_id}=req.user
-    const user =await User.findById(_id)
-    const newToken=jwt.sign({email:user.email,id:_id},process.env.JWT_SECRET_LOGIN,{expiresIn:"1d"})
+    let refreshToken = req.headers.refreshtoken;
+    if (!refreshToken) {
+        return res.status(401).json({ message: "Please login first" });
+    }
+    const decodedData = jwt.verify(refreshToken, process.env.JWT_SECRET_refresh);
+        
+    if (!decodedData || !decodedData.id) {
+        return res.status(400).json({ message: "Invalid token payload" });
+    }
+
+    const user = await User.findById(decodedData.id);
+
+    if (!user) {
+        return res.status(404).json({ message: "User not found" });
+    }
+
+    const accessToken=jwt.sign({email:user.email,id:user._id},process.env.JWT_SECRET_LOGIN,{expiresIn:"1d"})
+    refreshToken=jwt.sign({id:user._id},process.env.JWT_SECRET_refresh,{expiresIn:"6d"})
     
-    res.status(200).json({message:"new token has been created",newToken})
+    res.status(200).json({message:"new token has been created",accessToken:accessToken,refreshToken:refreshToken})
 }
 
 
