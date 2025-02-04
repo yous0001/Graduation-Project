@@ -16,7 +16,7 @@ const port = process.env.PORT;
 
 app.use(express.json());
 app.use('/auth',authRouter)
-app.use('category',categoryRouter)
+app.use('/category',categoryRouter)
 app.use(globalResponse)
 
 db_connection();
