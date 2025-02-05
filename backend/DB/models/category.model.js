@@ -3,14 +3,17 @@ import mongoose, { model } from "mongoose";
 const categorySchema = new mongoose.Schema({
     name: {
         type: String,
-        required: true
+        required: true,
+        trim:true,
+        unique: true
     },
     description: {
         type: String,
         required: true
     },
     image:{
-        type: String
+        secure_url:{type:String},
+        public_id:{type:String} 
     },
     addedBy: {
         type: mongoose.Schema.Types.ObjectId,
