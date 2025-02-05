@@ -8,5 +8,7 @@ import Category from "../../../DB/models/category.model.js";
 
 const router =Router()
 router.post('/create',auth(),getDocumentByName(Category), multerMiddleHost(allowedExtensions.image).single('image'),categoryController.createCategory)
+router.get('/',categoryController.getAllCategories)
+router.get('/get-category',categoryController.getCategory)
 
 export default router

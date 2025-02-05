@@ -32,3 +32,22 @@ export const createCategory = async(req,res,next)=>{
     const category=await  Category.create(categoryObj);
     return res.status(201).json({sucess:true,message:"category created successfully",category})
 }
+
+export const getAllCategories = async(req,res,next)=>{
+    const categories=await Category.find()
+    return res.status(200).json({sucess:true,categories})
+}
+export const getCategory=async(req,res,next)=>{
+    const {id,name}=req.query;
+    const queryFilter={}
+    if(id)queryFilter._id=id
+    if(name){
+        queryFilter.name=slugify(name, {
+            replacement: "_",
+            lower: true,
+        });
+    }
+    const category=await Category.findOne(queryFilter);
+    if(!category)return next(new Error(`Category not found`,{cause:404}));
+    return res.status(200).json({sucess:true,category})
+}
