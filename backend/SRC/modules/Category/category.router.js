@@ -5,10 +5,11 @@ import { multerMiddleHost } from './../../middlewares/multer.js';
 import { allowedExtensions } from "../../utils/allowed-extensions.js";
 import { getDocumentByName } from "../../middlewares/finders.middleware.js";
 import Category from "../../../DB/models/category.model.js";
+import  expressAsyncHandler  from 'express-async-handler';
 
 const router =Router()
-router.post('/create',auth(),getDocumentByName(Category), multerMiddleHost(allowedExtensions.image).single('image'),categoryController.createCategory)
-router.get('/',categoryController.getAllCategories)
-router.get('/get-category',categoryController.getCategory)
+router.post('/create',auth(),getDocumentByName(Category), multerMiddleHost(allowedExtensions.image).single('image'),expressAsyncHandler(categoryController.createCategory))
+router.get('/',expressAsyncHandler(categoryController.getAllCategories))
+router.get('/get-category',expressAsyncHandler(categoryController.getCategory))
 
 export default router
