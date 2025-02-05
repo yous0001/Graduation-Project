@@ -79,3 +79,26 @@ export const addMealDB=async(req,res,next)=>{
     const categoires=await Category.find()
     res.status(201).json({message:"categories added successfully",categoires});
 }
+
+export const updateCategory=async(req,res,next)=>{
+    let {name,description}=req.body;
+    const {id}=req.params;
+    if(!name || !description)return next(new Error(`please insert the thing that you want to update`,{cause:400}));
+    const category=await Category.findById(id);
+    if(!category)return next(new Error(`Category not found`,{cause:404}));
+    if(name){
+        name=slugify(name, {
+            replacement: "_",
+            lower: true,
+        });
+        const isCategoryExists=await Category.findOne({name});
+        if(isCategoryExists) return next(new Error(`Category with the same name already exists`,{cause:409}));
+        category.name=name
+    };
+    if(description){
+        category.description=description
+    }
+    await category.save();
+    res.status(200).json({message:"category updated successfully",category})
+    
+}

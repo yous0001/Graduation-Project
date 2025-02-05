@@ -9,9 +9,9 @@ import  expressAsyncHandler  from 'express-async-handler';
 import { systemRoles } from "../../utils/system-roles.js";
 
 const router =Router()
-router.post('/create',auth(),getDocumentByName(Category), multerMiddleHost(allowedExtensions.image).single('image'),expressAsyncHandler(categoryController.createCategory))
+router.post('/create',auth([systemRoles.ADMIN]),getDocumentByName(Category), multerMiddleHost(allowedExtensions.image).single('image'),expressAsyncHandler(categoryController.createCategory))
 router.get('/',expressAsyncHandler(categoryController.getAllCategories))
 router.get('/get-category',expressAsyncHandler(categoryController.getCategory))
 router.post('/add-mealdb',auth([systemRoles.ADMIN]),expressAsyncHandler(categoryController.addMealDB))
-
+router.put('/update/:id',auth([systemRoles.ADMIN]),expressAsyncHandler(categoryController.updateCategory))
 export default router
