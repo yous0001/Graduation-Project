@@ -1,6 +1,6 @@
 import slugify from "slugify";
 import Category from "../../../DB/models/category.model.js";
-import { uploadFile } from "../../utils/cloudinary.utils.js";
+import { cloudinaryConfig, uploadFile } from "../../utils/cloudinary.utils.js";
 import axios from "axios";
 
 export const createCategory = async(req,res,next)=>{
@@ -56,10 +56,11 @@ export const getCategory=async(req,res,next)=>{
 export const addMealDB=async(req,res,next)=>{
     const user=req.user;
     const response = await axios.get("https://www.themealdb.com/api/json/v1/1/categories.php");
+    const insertedCategories=[]
     for(const category of response.data.categories){
         const {strCategory,strCategoryThumb,strCategoryDescription}=category
         const slug=strCategory
-        const isCategoryExists=Category.findOne({name:strCategory})
+        const isCategoryExists=await Category.findOne({name:strCategory})
         if(isCategoryExists) continue;
         const { secure_url, public_id } = await uploadFile({
             file: strCategoryThumb,
@@ -74,29 +75,30 @@ export const addMealDB=async(req,res,next)=>{
                 secure_url:secure_url
             }
         }
-        await Category.create(categoryObj);
+        const newCategory=await Category.create(categoryObj);
+        insertedCategories.push(newCategory);
     }
-    const categoires=await Category.find()
-    res.status(201).json({message:"categories added successfully",categoires});
+    if(insertedCategories.length==0)return res.status(200).json({message:"no new categories to be added"})
+    res.status(201).json({message:"categories added successfully",insertedCategories});
 }
 
 export const updateCategory=async(req,res,next)=>{
-    let {name,description}=req.body;
+    let {description}=req.body;
     const {id}=req.params;
-    if(!name || !description)return next(new Error(`please insert the thing that you want to update`,{cause:400}));
+    if(!req.file && !description)return next(new Error(`please insert the thing that you want to update`,{cause:400}));
     const category=await Category.findById(id);
     if(!category)return next(new Error(`Category not found`,{cause:404}));
-    if(name){
-        name=slugify(name, {
-            replacement: "_",
-            lower: true,
-        });
-        const isCategoryExists=await Category.findOne({name});
-        if(isCategoryExists) return next(new Error(`Category with the same name already exists`,{cause:409}));
-        category.name=name
-    };
     if(description){
         category.description=description
+    }
+    if(req.file){
+        const { secure_url } = await cloudinaryConfig().uploader.upload(req.file.path,{
+            folder: `${process.env.UPLOADS_FOLDER}/Categories/${category.name}`,
+            public_id:category.image.public_id,
+            overwrite: true,
+            resource_type:"image"
+        })
+        category.image.secure_url=secure_url
     }
     await category.save();
     res.status(200).json({message:"category updated successfully",category})

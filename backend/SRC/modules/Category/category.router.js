@@ -13,5 +13,5 @@ router.post('/create',auth([systemRoles.ADMIN]),getDocumentByName(Category), mul
 router.get('/',expressAsyncHandler(categoryController.getAllCategories))
 router.get('/get-category',expressAsyncHandler(categoryController.getCategory))
 router.post('/add-mealdb',auth([systemRoles.ADMIN]),expressAsyncHandler(categoryController.addMealDB))
-router.put('/update/:id',auth([systemRoles.ADMIN]),expressAsyncHandler(categoryController.updateCategory))
+router.put('/update/:id',auth([systemRoles.ADMIN]), multerMiddleHost(allowedExtensions.image).single('image'),expressAsyncHandler(categoryController.updateCategory))
 export default router
