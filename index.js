@@ -3,6 +3,7 @@ import { config } from 'dotenv';
 import db_connection from './DB/connnection.js';
 import authRouter from './SRC/modules/Auth/auth.router.js';
 import categoryRouter from './SRC/modules/Category/category.router.js';
+import countryRouter from './SRC/modules/Country/country.router.js';
 import { globalResponse } from './SRC/middlewares/globalResponce.js';
 import { cloudinaryConfig } from './SRC/utils/cloudinary.utils.js';
 
@@ -17,6 +18,7 @@ const port = process.env.PORT;
 app.use(express.json());
 app.use('/auth',authRouter)
 app.use('/category',categoryRouter)
+app.use('/country',countryRouter)
 app.use(globalResponse)
 
 db_connection();
