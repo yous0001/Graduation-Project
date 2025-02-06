@@ -37,11 +37,23 @@ export const addMealDBCountries=async(req,res,next)=>{
 export const updateCountry=async(req, res, next) => {
     const { name ,description} = req.body;
     const { id } = req.params;
+
+    if(!id) return next(new Error("Please provide the country id", {cause: 400}));
     if (!name&&!description) return next(new Error("Please provide the country name", {cause: 400}));
+
     const country = await Country.findById(id);
     if (!country) return next(new Error("Country not found", {cause: 404}));
     if (name) country.name = name;
     if (description) country.description = description;
     await country.save();
     res.status(200).json({ success: true, message: "Country updated successfully", country });
+}
+export const deleteCountry=async(req, res, next) => {
+    const { id } = req.params;
+
+    if(!id) return next(new Error("Please provide the country id", {cause: 400}));
+    const country = await Country.findByIdAndDelete(id);
+    if (!country) return next(new Error("Country not found", {cause: 404}));
+
+    res.status(200).json({ success: true, message: "Country deleted successfully" });
 }

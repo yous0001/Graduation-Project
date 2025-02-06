@@ -11,4 +11,5 @@ router.post('/create',auth([systemRoles.ADMIN]),getDocumentByName(Country), expr
 router.get('/',expressAsyncHandler(countryController.getAllCountries))
 router.post('/add-mealdb',auth([systemRoles.ADMIN]),expressAsyncHandler(countryController.addMealDBCountries))
 router.put('/update/:id',auth([systemRoles.ADMIN]), expressAsyncHandler(countryController.updateCountry))
+router.delete('/delete/:id',auth([systemRoles.ADMIN]), expressAsyncHandler(countryController.deleteCountry))
 export default router
