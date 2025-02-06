@@ -6,7 +6,8 @@ const countrySchema = new mongoose.Schema({
         required: true
     },
     image:{
-        type: String
+        secure_url:{type:String},
+        public_id:{type:String}
     }
 }
 ,{timestamps: true});
