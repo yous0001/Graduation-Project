@@ -34,3 +34,14 @@ export const addMealDBCountries=async(req,res,next)=>{
     if(insertedCountries.length==0)return res.status(200).json({message:"no new Countries to be added"})
     res.status(201).json({message:"Countries added successfully",insertedCountries});
 }
+export const updateCountry=async(req, res, next) => {
+    const { name ,description} = req.body;
+    const { id } = req.params;
+    if (!name&&!description) return next(new Error("Please provide the country name", {cause: 400}));
+    const country = await Country.findById(id);
+    if (!country) return next(new Error("Country not found", {cause: 404}));
+    if (name) country.name = name;
+    if (description) country.description = description;
+    await country.save();
+    res.status(200).json({ success: true, message: "Country updated successfully", country });
+}

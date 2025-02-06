@@ -5,6 +5,10 @@ const countrySchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    description: {
+        type: String,
+        required: true
+    },
     image:{
         secure_url:{type:String},
         public_id:{type:String}

@@ -10,4 +10,5 @@ const router =Router()
 router.post('/create',auth([systemRoles.ADMIN]),getDocumentByName(Country), expressAsyncHandler(countryController.addCountry))
 router.get('/',expressAsyncHandler(countryController.getAllCountries))
 router.post('/add-mealdb',auth([systemRoles.ADMIN]),expressAsyncHandler(countryController.addMealDBCountries))
+router.put('/update/:id',auth([systemRoles.ADMIN]), expressAsyncHandler(countryController.updateCountry))
 export default router
