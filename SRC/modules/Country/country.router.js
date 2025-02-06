@@ -8,5 +8,6 @@ import expressAsyncHandler from "express-async-handler";
 
 const router =Router()
 router.post('/create',auth([systemRoles.ADMIN]),getDocumentByName(Country), expressAsyncHandler(countryController.addCountry))
-
+router.get('/',expressAsyncHandler(countryController.getAllCountries))
+router.post('/add-mealdb',auth([systemRoles.ADMIN]),expressAsyncHandler(countryController.addMealDBCountries))
 export default router
