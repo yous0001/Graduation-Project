@@ -311,13 +311,13 @@ export const updateUser = async(req, res, next)=>{
     let user = req.user;
     const {name,phoneNumbers,age,address}=req.body;
     if(name)
-        user.name=name;
+        user.username=name;
     if(phoneNumbers)
         user.phoneNumbers=phoneNumbers;
     if(age)
         user.age=age;
     if(address)
-        user.address=address;
+        user.addresses=address;
     await user.save();
     user=user.toObject();
     delete user.profileImage?.public_id
