@@ -23,7 +23,7 @@ export const auth = (accessRoles = [systemRoles.USER, systemRoles.ADMIN, systemR
             try {
                 decodedData = jwt.verify(token, process.env.JWT_SECRET_LOGIN);
             } catch (err) {
-                if (err.name === "TokenExpiredError") {
+                if (err.name === "TokenExpiredError" || err.message === "jwt expired") {
                     return res.status(401).json({ message: "Token has expired. Please login again." });
                 }
                 if (err.name === "JsonWebTokenError") {
