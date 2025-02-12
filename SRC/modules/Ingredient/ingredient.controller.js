@@ -1,7 +1,7 @@
 
 import slugify from 'slugify';
 import Ingredient from '../../../DB/models/ingredient.model.js';
-import { uploadFile } from '../../utils/cloudinary.utils.js';
+import { cloudinaryConfig, uploadFile } from '../../utils/cloudinary.utils.js';
 
 
 export const addIngredient = async (req, res, next) => {
@@ -70,4 +70,19 @@ export const addIngredient = async (req, res, next) => {
         message: "Ingredient added successfully",
         ingredient
     });
+}
+
+export const deleteIngredient=async (req, res,next) => {
+    const { id } = req.params;
+    if (!id) return next(new Error("Please provide the ingredient id", { cause: 400 }));
+
+    const ingredient = await Ingredient.findById(id);
+
+    const data=await cloudinaryConfig().uploader.destroy(ingredient.image.public_id)
+    if(data.result!='ok')
+        return next(new Error("Couldn't delete image", { cause: 400 }));
+    const deleteingredient = await Ingredient.findByIdAndDelete(id);
+    if (!deleteingredient) return next(new Error("Ingredient not found", { cause: 404 }));
+
+    res.status(200).json({ success: true, message: "Ingredient deleted successfully" });
 }

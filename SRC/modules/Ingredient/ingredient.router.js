@@ -14,5 +14,8 @@ router.post('/add',
         auth([systemRoles.ADMIN]),multerMiddleHost({extensions:allowedExtensions.image}).single("image"),
         validationMiddleware(ingredeintSchema.addIngredientSchema),
         expressAsyncHandler(ingredientController.addIngredient))
+router.delete('/delete/:id',
+    auth([systemRoles.ADMIN]),
+    expressAsyncHandler(ingredientController.deleteIngredient))
 
 export default router
