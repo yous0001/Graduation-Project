@@ -3,7 +3,14 @@ import mongoose, { model } from "mongoose";
 const recipeSchema = new mongoose.Schema({
     title: { 
         type: String,
-        required: true 
+        required: true,
+        trim: true
+    },
+    slug: { 
+        type: String,
+        required: true,
+        trim: true,
+        unique: true
     },
     description: { 
         type: String
@@ -13,7 +20,7 @@ const recipeSchema = new mongoose.Schema({
             ref: 'Ingredient' 
     }],
     directions: { 
-        type: [String],
+        type: String,
         required: true 
     },
     images: [String],
@@ -30,6 +37,14 @@ const recipeSchema = new mongoose.Schema({
         min:0,
         max:5,
         default: 0 
+    },
+    badges:{
+        type: String,
+        enum: ['New', 'Trending', 'best recipe'],
+    },
+    views:{
+        type: Number,
+        default: 0
     },
     createdBy: {
         type:Schema.Types.ObjectId,
