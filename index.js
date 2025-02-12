@@ -20,8 +20,8 @@ app.use(express.json());
 app.use('/auth',authRouter)
 app.use('/category',categoryRouter)
 app.use('/country',countryRouter)
-app.use(globalResponse)
 app.use('/ingredient',ingredientRouter)
+app.use(globalResponse)
 db_connection();
 
 app.get('/test',(req, res) => {

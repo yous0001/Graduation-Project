@@ -15,7 +15,11 @@ router.post('/add',
         validationMiddleware(ingredeintSchema.addIngredientSchema),
         expressAsyncHandler(ingredientController.addIngredient))
 router.delete('/delete/:id',
-    auth([systemRoles.ADMIN]),
-    expressAsyncHandler(ingredientController.deleteIngredient))
+        auth([systemRoles.ADMIN]),
+        expressAsyncHandler(ingredientController.deleteIngredient))
+router.put('/update/:id',
+        auth([systemRoles.ADMIN]),
+        validationMiddleware(ingredeintSchema.updateIngredientSchema),
+        expressAsyncHandler(ingredientController.updateIngredient))
 
 export default router
