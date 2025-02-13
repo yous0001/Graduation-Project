@@ -22,7 +22,7 @@ app.use('/auth',authRouter)
 app.use('/category',categoryRouter)
 app.use('/country',countryRouter)
 app.use('/ingredient',ingredientRouter)
-app.use('/receipe',receipeRouter)
+app.use('/recipe',receipeRouter)
 app.use(globalResponse)
 db_connection();
 

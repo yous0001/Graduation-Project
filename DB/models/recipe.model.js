@@ -1,7 +1,7 @@
-import mongoose, { model } from "mongoose";
+import mongoose, { model, Schema } from "mongoose";
 
 const recipeSchema = new mongoose.Schema({
-    title: { 
+    name: { 
         type: String,
         required: true,
         trim: true
@@ -15,15 +15,37 @@ const recipeSchema = new mongoose.Schema({
     description: { 
         type: String
     },
-    ingredients: [{ 
-        type: Schema.Types.ObjectId,
-            ref: 'Ingredient' 
-    }],
+    ingredients:[
+        {
+            ingredient: { type: Schema.Types.ObjectId, ref: 'Ingredient' }, // Reference to Ingredient model
+            amount: { type: String, required: true } // Amount of this ingredient
+        }
+    ],
     directions: { 
         type: String,
         required: true 
     },
-    images: [String],
+    Images:{ 
+        URLs:[{
+            secure_url:{
+                type:String,
+                required: true
+            },
+            public_id:{
+                type:String,
+                required: true
+            } 
+        }],
+        customID:{type:String, required:true}
+    },
+    videoLink:{ 
+        type: String
+    },
+    tags:[{
+        type: String,
+        required: false
+    }]
+    ,
     category: { 
         type: Schema.Types.ObjectId,
         ref: 'Category' 
