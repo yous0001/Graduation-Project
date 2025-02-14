@@ -21,5 +21,7 @@ router.put('/update/:id',
         auth([systemRoles.ADMIN]),
         validationMiddleware(ingredeintSchema.updateIngredientSchema),
         expressAsyncHandler(ingredientController.updateIngredient))
-
+router.post('/add-mealDB',
+        auth([systemRoles.ADMIN]),
+        expressAsyncHandler(ingredientController.addMealDBIngredients))
 export default router

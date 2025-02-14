@@ -2,6 +2,7 @@
 import slugify from 'slugify';
 import Ingredient from '../../../DB/models/ingredient.model.js';
 import { cloudinaryConfig, uploadFile } from '../../utils/cloudinary.utils.js';
+import axios from 'axios';
 
 
 export const addIngredient = async (req, res, next) => {
@@ -126,4 +127,71 @@ export const updateIngredient = async (req, res, next) => {
     await ingredient.save()
 
     res.status(200).json({ success: true, message: "Ingredient updated successfully", ingredient });
+}
+
+export const addMealDBIngredients=async(req,res,next)=>{
+    try {
+        
+        const { data } = await axios.get("https://www.themealdb.com/api/json/v1/1/list.php?i=list");
+        const ingredients = data.meals;
+
+        if (!ingredients || ingredients.length === 0) {
+            return res.status(404).json({
+                message: "No ingredients found from the API",
+            });
+        }
+
+        const insertedIngredients = [];
+
+        for (const item of ingredients) {
+            const { strIngredient } = item;
+
+            
+            const ingredientImageUrl = `https://www.themealdb.com/images/ingredients/${encodeURIComponent(strIngredient)}.png`;
+            const verifyImageResponse = await axios.get(ingredientImageUrl).catch(() => null);
+
+            if (!verifyImageResponse || verifyImageResponse.status !== 200) {
+                console.log(`Image not found for ingredient: ${strIngredient}`);
+                continue;
+            }
+
+            
+            const uploadedImage = await uploadFile({
+                file: ingredientImageUrl,
+                folder: `${process.env.UPLOADS_FOLDER}/ingredients`,
+            });
+
+            
+            const basePrice = (Math.random() * (100 - 10) + 10).toFixed(2); 
+            const stock = Math.floor(Math.random() * (500 - 50) + 50); 
+
+            
+            const ingredientData = {
+                name: strIngredient,
+                slug: slugify(strIngredient, { replacement: "_", lower: true }),
+                basePrice: parseFloat(basePrice),
+                appliedPrice: parseFloat(basePrice),
+                stock: stock,
+                image: {
+                    public_id: uploadedImage.public_id,
+                    secure_url: uploadedImage.secure_url,
+                },
+                createdBy: req.user._id,
+            };
+
+            
+            const newIngredient = await Ingredient.create(ingredientData);
+            insertedIngredients.push(newIngredient);
+        }
+
+        
+        return res.status(201).json({
+            message: `${insertedIngredients.length} ingredients inserted successfully.`,
+            ingredients: insertedIngredients,
+        });
+
+    } catch (error) {
+        console.error("Error fetching and adding ingredients:", error);
+        next(error); 
+    }
 }
