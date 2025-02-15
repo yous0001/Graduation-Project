@@ -37,6 +37,18 @@ const ingredientSchema = new mongoose.Schema({
     appliedPrice: {
         type: Number,
         required: true,
+        default: function() {
+                let appliedPrice = this.basePrice;
+                    switch (this.discount.type) {
+                        case "percentage":
+                            appliedPrice = this.basePrice * (1 - this.discount.amount / 100);
+                            break;
+                        case "fixed":
+                            appliedPrice = this.basePrice - this.discount.amount;
+                            break;
+                    }
+                return appliedPrice;
+            }
     },
     stock:{
         type: Number,

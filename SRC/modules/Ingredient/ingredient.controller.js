@@ -21,20 +21,6 @@ export const addIngredient = async (req, res, next) => {
         return next(new Error(`Ingredient with this name already exists`, { cause: 400 }));
     }
 
-
-    let appliedPrice = basePrice;
-    if (discountAmount && discountType) {
-        if(discountType==="percentage" && discountAmount>100)return next(new Error("discount can't be more than 100%",{cause:409}))
-        switch (discountType) {
-            case "percentage":
-                appliedPrice = basePrice * (1 - discountAmount / 100);
-                break;
-            case "fixed":
-                appliedPrice = basePrice - discountAmount;
-                break;
-        }
-    }
-
     
     let image = {};
     if (req.file) {
@@ -54,7 +40,6 @@ export const addIngredient = async (req, res, next) => {
         slug,
         description,
         basePrice,
-        appliedPrice,
         discount: {
             discountAmount,
             discountType,
