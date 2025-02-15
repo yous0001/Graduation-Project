@@ -41,8 +41,8 @@ export const addIngredient = async (req, res, next) => {
         description,
         basePrice,
         discount: {
-            discountAmount,
-            discountType,
+            amount:discountAmount,
+            type:discountType,
         },
         stock,
         image,
