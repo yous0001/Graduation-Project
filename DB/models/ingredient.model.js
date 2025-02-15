@@ -11,7 +11,10 @@ const ingredientSchema = new mongoose.Schema({
         type: String,
         required: true,
         trim: true,
-        unique: true
+        unique: true,
+        default:function() {
+                    return slugify(this.name,{replacement: "_",lower: true,})
+                }
     },
     description:String,
     basePrice: {

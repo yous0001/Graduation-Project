@@ -1,4 +1,5 @@
 import mongoose, { model, Schema } from "mongoose";
+import slugify from "slugify";
 
 const recipeSchema = new mongoose.Schema({
     name: { 
@@ -10,7 +11,10 @@ const recipeSchema = new mongoose.Schema({
         type: String,
         required: true,
         trim: true,
-        unique: true
+        unique: true,
+        default:function() {
+            return slugify(this.name,{replacement: "_",lower: true,})
+        }
     },
     description: { 
         type: String
