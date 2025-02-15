@@ -6,8 +6,7 @@ const countrySchema = new mongoose.Schema({
         required: true
     },
     description: {
-        type: String,
-        required: true
+        type: String
     },
     image:{
         secure_url:{type:String},

@@ -5,6 +5,9 @@ import Country from './../../../DB/models/country.model.js';
 import Category from './../../../DB/models/category.model.js';
 import { nanoid } from "nanoid";
 import Ingredient from './../../../DB/models/ingredient.model.js';
+import axios from "axios";
+import chalk from "chalk";
+
 
 
 
@@ -77,3 +80,176 @@ export const addRecipe=async (req,res,next)=>{
     }
     res.status(201).json({sucess:true,message:"Recipe created successfully",recipe:newRecipe});
 } 
+
+
+export const addMealDBRecipes = async (req, res, next) => {
+    const baseUrl = "https://www.themealdb.com/api/json/v1/1/search.php?f=";
+    const alphabet = "abcdefghijklmnopqrstuvwxyz";
+    const ingredientApiUrl = "https://www.themealdb.com/api/json/v1/1/filter.php?i=";
+    const insertedRecipes = [];
+    const insertedCountries=[];
+    const insertedIngredients=[];
+    try {
+        for (const letter of alphabet) {
+            const { data } = await axios.get(`${baseUrl}${letter}`);
+            if (!data.meals) continue;
+
+            for (const meal of data.meals) {
+                try {
+                    const {
+                        strMeal,
+                        strInstructions,
+                        strYoutube,
+                        strTags,
+                        strArea,
+                        strCategory,
+                        strMealThumb,
+                    } = meal;
+
+                    const slug = slugify(strMeal, { replacement: "_", lower: true });
+
+
+                    const isRecipeExists = await Recipe.findOne({ slug });
+                    if (isRecipeExists) {
+                        console.log(`Recipe skipped: ${strMeal} (already exists)`);
+                        continue;
+                    }
+
+
+                    const category = await Category.findOne({ name: strCategory });
+                    if (!category) {
+                        console.log(`Recipe skipped: ${strMeal} (Category not found: ${strCategory})`);
+                        continue;
+                    }
+
+
+                    const country = await Country.findOne({ name: strArea });
+                    if (!country) {
+                        console.log(`(Country not found: ${strArea}) Adding to DB`);
+                        const newCountry = await Country.create({ name: strArea});
+                        insertedCountries.push(newCountry);
+                    }
+
+
+                    const ingredients = [];
+
+                    for (let i = 1; i <= 20; i++) {
+                        const ingredientName = meal[`strIngredient${i}`];
+                        const measure = meal[`strMeasure${i}`] || "N/A";
+
+                        if (!ingredientName || ingredientName.trim() === "") break;
+                        const slug=slugify(ingredientName, { replacement: "_", lower: true })
+                        let ingredient = await Ingredient.findOne({ slug });
+                        if (!ingredient) {
+                            const ingredientResponse = await axios.get(`${ingredientApiUrl}${encodeURIComponent(ingredientName)}`);
+                            const mealsWithIngredient = ingredientResponse.data.meals;
+
+                                if (mealsWithIngredient) {
+                                    const ingredientImageUrl = `https://www.themealdb.com/images/ingredients/${encodeURIComponent(ingredientName)}.png`;
+                                    const verifyImageResponse = await axios
+                                        .get(ingredientImageUrl)
+                                        .catch(() => null);
+
+                                    if (!verifyImageResponse || verifyImageResponse.status !== 200) {
+                                        console.log(`Image not found for ingredient: ${ingredientName}`);
+                                        continue;
+                                    }
+
+                                    // Upload image
+                                    const uploadedImage = await uploadFile({
+                                        file: ingredientImageUrl,
+                                        folder: `${process.env.UPLOADS_FOLDER}/ingredients`,
+                                    });
+
+                                    // Generate random base price and stock
+                                    const basePrice = (Math.random() * (100 - 10) + 10).toFixed(2);
+                                    const stock = Math.floor(Math.random() * (500 - 50) + 50);
+
+                                    // Create ingredient
+                                    const ingredientData = {
+                                        name: ingredientName,
+                                        slug,
+                                        basePrice: parseFloat(basePrice),
+                                        appliedPrice: parseFloat(basePrice),
+                                        stock: stock,
+                                        image: {
+                                            public_id: uploadedImage.public_id,
+                                            secure_url: uploadedImage.secure_url,
+                                        },
+                                        createdBy: req.user._id,
+                                    };
+
+                                    ingredient = await Ingredient.create(ingredientData);
+                                    console.log(`Ingredient added: ${ingredientName}`);
+
+                                    insertedIngredients.push(ingredient);
+                            } else {
+                                console.log(`${ingredientName} failed to find `)
+                            }
+                        }
+
+                        ingredients.push({
+                            ingredient: ingredient._id,
+                            amount: measure, 
+                        });
+                    }
+
+
+                    let image = {};
+                    if (strMealThumb) {
+                        const uploadedImage = await uploadFile({
+                            file: strMealThumb,
+                            folder: `${process.env.UPLOADS_FOLDER}/Categories/${category.name}/Recipes`,
+                        });
+
+                        image = {
+                            public_id: uploadedImage.public_id,
+                            secure_url: uploadedImage.secure_url,
+                        };
+                    } else {
+                        console.log(`Recipe skipped: ${strMeal} (Image not found)`);
+                        continue;
+                    }
+
+
+                    const recipeObj = {
+                        name: strMeal,
+                        slug,
+                        description: strInstructions,
+                        ingredients,
+                        directions: strInstructions,
+                        createdBy: req.user._id,
+                        category: category._id,
+                        country: country._id,
+                        Images: {
+                            URLs: [image],
+                            customID: nanoid(6),
+                        },
+                        tags: strTags ? strTags.split(",") : [],
+                        videoLink: strYoutube || null,
+                    };
+
+
+                    const newRecipe = await Recipe.create(recipeObj);
+                    insertedRecipes.push(newRecipe);
+                    console.log(chalk.bgGreen(`Recipe added: ${strMeal}`));
+                } catch (error) {
+                    console.log(`Error adding recipe: ${meal.strMeal}`, error.message);
+                    continue;
+                }
+            }
+        }
+
+        res.status(201).json({
+            success: true,
+            message: `${insertedRecipes.length} recipes inserted successfully`,
+            insertedRecipes,
+            insertedCountries,
+            insertedIngredients,
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+
