@@ -69,3 +69,49 @@ export const addRecipeSchema = {
         country: validateId("countryID"),
     }),
 };
+
+export const updateRecipeSchema = {
+    params: Joi.object({
+        recipeID: validateId("Recipe ID"), 
+    }),
+    body: Joi.object({
+        name: Joi.string().optional().min(2).max(100).trim().messages({
+            "string.base": "Name must be a string.",
+            "string.min": "Name must be at least 2 characters long.",
+            "string.max": "Name cannot exceed 100 characters.",
+        }),
+        description: Joi.string().optional().allow("").max(10000).messages({
+            "string.base": "Description must be a string.",
+            "string.max": "Description cannot exceed 10000 characters.",
+        }),
+        directions: Joi.string().optional().min(5).max(50000).trim().messages({
+            "string.base": "Directions must be a string.",
+            "string.min": "Directions must be at least 5 characters long.",
+            "string.max": "Directions cannot exceed 50000 characters.",
+        }),
+        videoLink: Joi.string()
+            .uri()
+            .optional()
+            .messages({
+            "string.base": "Video link must be a string.",
+            "string.uri": "Video link must be a valid URL.",
+            }),
+        tags: Joi.array()
+            .items(
+            Joi.string()
+                .min(2)
+                .max(30)
+                .trim()
+                .messages({
+                "string.base": "Each tag must be a string.",
+                "string.min": "Tag must be at least 2 characters long.",
+                "string.max": "Tag cannot exceed 30 characters.",
+                })
+            )
+            .optional()
+            .messages({
+            "array.base": "Tags must be an array of strings.",
+            }),
+    }),
+  };
+  

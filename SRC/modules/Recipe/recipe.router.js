@@ -21,4 +21,8 @@ router.post("/add-mealDB",auth([systemRoles.ADMIN]),
     expressAsyncHandler(receipeController.addMealDBRecipes))
 
 
+router.put("/:recipeID",auth([systemRoles.ADMIN]),
+    validationMiddleware(recipeSchema.updateRecipeSchema),
+    expressAsyncHandler(receipeController.updateRecipe))
+
 export default router;

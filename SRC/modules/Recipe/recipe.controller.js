@@ -253,3 +253,20 @@ export const addMealDBRecipes = async (req, res, next) => {
 };
 
 
+
+export const updateRecipe=async(req,res,next)=>{
+    const {recipeID}=req.params
+    const {name,description,directions,tags,videoLink}=req.body
+    const recipe=await Recipe.findById(recipeID)
+    if(!recipe) return next(new Error('Recipe not found',{cause:404}))
+    if(name) {
+        recipe.name=name
+        recipe.slug=slugify(name, { replacement: "_", lower: true })
+    }
+    if(description) recipe.description=description
+    if(directions) recipe.directions=directions
+    if(tags) recipe.tags=tags
+    if(videoLink) recipe.videoLink=videoLink
+    await recipe.save()
+    res.status(200).json({message:"Recipe updated successfully",recipe})
+}
