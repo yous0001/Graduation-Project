@@ -1,4 +1,5 @@
 import mongoose, { model, Schema } from "mongoose";
+import { discountTypes } from "../../SRC/utils/enums.utils.js";
 
 const ingredientSchema = new mongoose.Schema({
     name: {
@@ -30,8 +31,8 @@ const ingredientSchema = new mongoose.Schema({
         },
         type:{
             type: String,
-            enum: ['percentage', 'fixed'],
-            default: 'percentage'
+            enum: Object.keys(discountTypes),
+            default: discountTypes.percentage
         }
     },
     appliedPrice: {

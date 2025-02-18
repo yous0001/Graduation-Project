@@ -1,5 +1,6 @@
 import mongoose, { model, Schema } from "mongoose";
 import slugify from "slugify";
+import { Badges } from "../../SRC/utils/enums.utils.js";
 
 const recipeSchema = new mongoose.Schema({
     name: { 
@@ -66,7 +67,7 @@ const recipeSchema = new mongoose.Schema({
     },
     badges:{
         type: String,
-        enum: ['New', 'Trending', 'best recipe'],
+        enum: Object.values(Badges),
     },
     views:{
         type: Number,
