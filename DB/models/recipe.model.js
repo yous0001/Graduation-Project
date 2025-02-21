@@ -1,6 +1,8 @@
-import mongoose, { model, Schema } from "mongoose";
+import mongoose from "../global-setup.js";
 import slugify from "slugify";
 import { Badges } from "../../SRC/utils/enums.utils.js";
+
+const {Schema,model}=mongoose
 
 const recipeSchema = new mongoose.Schema({
     name: { 

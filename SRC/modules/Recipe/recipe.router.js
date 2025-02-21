@@ -25,4 +25,8 @@ router.put("/:recipeID",auth([systemRoles.ADMIN]),
     validationMiddleware(recipeSchema.updateRecipeSchema),
     expressAsyncHandler(receipeController.updateRecipe))
 
+    
+router.get("/list",
+expressAsyncHandler(receipeController.getRecipes))
+
 export default router;

@@ -180,3 +180,22 @@ export const addMealDBIngredients=async(req,res,next)=>{
         next(error); 
     }
 }
+
+export const getIngredients=async(req,res,next)=>{
+    const {page=1,limit=10,name,slug,appliedPrice,stock}=req.query
+    const skip=(page-1)*limit
+    const queryFilters={}
+    if(appliedPrice)queryFilters.appliedPrice=appliedPrice
+    if(stock) queryFilters.stock=stock
+    const Ingredients=await Ingredient.paginate(queryFilters,{
+        page,
+        limit
+        ,skip,
+        select:"-createdAt -updatedAt",
+        sort:{views:-1}
+    })
+    res.status(200).json({
+        sucess:true,
+        Ingredients
+    })
+}

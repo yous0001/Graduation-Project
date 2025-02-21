@@ -1,6 +1,7 @@
-import mongoose, { model, Schema } from "mongoose";
+import mongoose from "../global-setup.js";
 import { discountTypes } from "../../SRC/utils/enums.utils.js";
 
+const {Schema,model}=mongoose
 const ingredientSchema = new mongoose.Schema({
     name: {
         type: String,

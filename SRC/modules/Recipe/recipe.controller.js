@@ -270,3 +270,24 @@ export const updateRecipe=async(req,res,next)=>{
     await recipe.save()
     res.status(200).json({message:"Recipe updated successfully",recipe})
 }
+
+
+export const getRecipes=async(req,res,next)=>{
+    const {page=1,limit=10,name,slug,categoryID,countryID}=req.query
+    const skip=(page-1)*limit
+    const queryFilters={}
+    if(categoryID) queryFilters.category=categoryID
+    if(countryID) queryFilters.country=countryID
+    const recipes=await Recipe.paginate(queryFilters,{
+        page,
+        limit
+        ,skip,
+        select:"-createdAt -updatedAt",
+        populate:"ingredients.ingredient",
+        sort:{views:-1}
+    })
+    res.status(200).json({
+        sucess:true,
+        recipes
+    })
+}
