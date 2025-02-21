@@ -204,8 +204,12 @@ export const getIngredients=async(req,res,next)=>{
         page,
         limit
         ,skip,
-        select:"-createdAt -updatedAt",
-        sort:{views:-1}
+        select:"-createdAt -updatedAt -__v -image.public_id ",
+        sort:{views:-1},
+        populate:[{
+            path:"createdBy",
+            select:"username profileImage.secure_url -_id"
+        }],
     })
     res.status(200).json({
         sucess:true,

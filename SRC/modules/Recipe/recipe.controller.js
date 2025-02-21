@@ -293,8 +293,23 @@ export const getRecipes=async(req,res,next)=>{
         page,
         limit
         ,skip,
-        select:"-createdAt -updatedAt",
-        populate:"ingredients.ingredient country category",
+        select:"-createdAt -updatedAt -Images.URLs.public_id -Images.URLs._id -Images.customID -slug -description -ingredients._id -__v",
+        populate:[{
+            path:"country",
+            select:"name"
+        },
+        {
+            path:"category",
+            select:"name"
+        },
+        {
+            path:"ingredients.ingredient",
+            select:"name image.secure_url"
+        },
+    {
+        path:"createdBy",
+        select:"username profileImage.secure_url -_id"
+    }],
         sort:{views:-1}
     })
     res.status(200).json({
