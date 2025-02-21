@@ -273,11 +273,20 @@ export const updateRecipe=async(req,res,next)=>{
 
 
 export const getRecipes=async(req,res,next)=>{
-    const {page=1,limit=10,name,slug,categoryID,countryID}=req.query
+    const {page=1,limit=10,...queryFilter}=req.query
+    const {name,slug,categoryID,countryID,rate}=queryFilter
+
     const skip=(page-1)*limit
-    const queryFilters={}
+
+    let queryFilters={}
     if(categoryID) queryFilters.category=categoryID
     if(countryID) queryFilters.country=countryID
+    if(rate) queryFilters.Average_rating=rate
+    if(name) {
+        queryFilters.slug=slugify(name, { replacement: "_", lower: true })}
+    queryFilters=JSON.stringify(queryFilters)
+    queryFilters=queryFilters.replace(/gt|gte|lt|lte|regex|ne|eq/g, (element)=>`$${element}`);
+    queryFilters=JSON.parse(queryFilters)
     const recipes=await Recipe.paginate(queryFilters,{
         page,
         limit

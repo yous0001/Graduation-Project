@@ -182,11 +182,22 @@ export const addMealDBIngredients=async(req,res,next)=>{
 }
 
 export const getIngredients=async(req,res,next)=>{
-    const {page=1,limit=10,name,slug,appliedPrice,stock}=req.query
+    const {page=1,limit=10,...queryFilter}=req.query
+    //rest operator on every request elements except page and limit
+    const {name,slug,appliedPrice,stock}=queryFilter
+    //name,slug,appliedPrice,stock
     const skip=(page-1)*limit
-    const queryFilters={}
+    let queryFilters={}
+    if(name) {
+        queryFilters.slug=slugify(name, { replacement: "_", lower: true })}
     if(appliedPrice)queryFilters.appliedPrice=appliedPrice
     if(stock) queryFilters.stock=stock
+    //stringify the object to make replacing on it 
+    queryFilters=JSON.stringify(queryFilters)
+    //replace the operators with the correct mongoDB operators  (gt,gte,lt,lte,regex,ne,eq)
+    queryFilters=queryFilters.replace(/gt|gte|lt|lte|regex|ne|eq/g, (element)=>`$${element}`);
+    //parse the string back to an object  (to be able to use it in mongoose query)
+    queryFilters=JSON.parse(queryFilters)
     const Ingredients=await Ingredient.paginate(queryFilters,{
         page,
         limit
