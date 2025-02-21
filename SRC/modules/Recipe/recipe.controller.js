@@ -294,7 +294,7 @@ export const getRecipes=async(req,res,next)=>{
         limit
         ,skip,
         select:"-createdAt -updatedAt",
-        populate:"ingredients.ingredient",
+        populate:"ingredients.ingredient country category",
         sort:{views:-1}
     })
     res.status(200).json({
