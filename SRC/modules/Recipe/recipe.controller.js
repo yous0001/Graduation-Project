@@ -293,7 +293,7 @@ export const getRecipes=async(req,res,next)=>{
         page,
         limit
         ,skip,
-        select:"-createdAt -updatedAt -Images.URLs.public_id -Images.URLs._id -Images.customID -slug -description -ingredients._id -__v",
+        select:"-createdAt -updatedAt -Images.URLs.public_id -Images.URLs._id -Images.customID -slug -ingredients._id -__v",
         populate:[{
             path:"country",
             select:"name"
@@ -304,7 +304,7 @@ export const getRecipes=async(req,res,next)=>{
         },
         {
             path:"ingredients.ingredient",
-            select:"name image.secure_url"
+            select:"name image.secure_url _id basePrice appliedPrice stock Average_rating discount"
         },
     {
         path:"createdBy",
