@@ -188,8 +188,10 @@ export const getIngredients=async(req,res,next)=>{
     //name,slug,appliedPrice,stock
     const skip=(page-1)*limit
     let queryFilters={}
-    if(name) {
-        queryFilters.slug=slugify(name, { replacement: "_", lower: true })}
+    if(name) queryFilters.name=name
+    if(slug){ 
+        queryFilters.slug=slugify(slug, { replacement: "_", lower: true })
+    }
     if(appliedPrice)queryFilters.appliedPrice=appliedPrice
     if(stock) queryFilters.stock=stock
     //stringify the object to make replacing on it 

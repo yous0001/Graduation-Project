@@ -282,8 +282,10 @@ export const getRecipes=async(req,res,next)=>{
     if(categoryID) queryFilters.category=categoryID
     if(countryID) queryFilters.country=countryID
     if(rate) queryFilters.Average_rating=rate
-    if(name) {
-        queryFilters.slug=slugify(name, { replacement: "_", lower: true })}
+    if(name) queryFilters.name=name
+    if(slug){ 
+        queryFilters.slug=slugify(slug, { replacement: "_", lower: true })
+    }
     queryFilters=JSON.stringify(queryFilters)
     queryFilters=queryFilters.replace(/gt|gte|lt|lte|regex|ne|eq/g, (element)=>`$${element}`);
     queryFilters=JSON.parse(queryFilters)
