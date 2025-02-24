@@ -7,6 +7,8 @@ import { nanoid } from "nanoid";
 import Ingredient from './../../../DB/models/ingredient.model.js';
 import axios from "axios";
 import chalk from "chalk";
+import { ApiFeatures } from "../../utils/api-features.js";
+
 
 
 
@@ -273,47 +275,35 @@ export const updateRecipe=async(req,res,next)=>{
 
 
 export const getRecipes=async(req,res,next)=>{
-    const {page=1,limit=10,...queryFilter}=req.query
-    const {name,slug,categoryID,countryID,rate}=queryFilter
+    const apiFeatures = new ApiFeatures(Recipe, req.query)
+            .filter()
+            .search()
+            .sort()
+            .limitFields("-createdAt -updatedAt -Images.URLs.public_id -Images.URLs._id -Images.customID -slug -ingredients._id -__v")
+            .populate(
+                [{
+                    path:"country",
+                    select:"name"
+                },
+                {
+                    path:"category",
+                    select:"name"
+                },
+                {
+                    path:"ingredients.ingredient",
+                    select:"name image.secure_url _id basePrice appliedPrice stock Average_rating discount"
+                },
+            {
+                path:"createdBy",
+                select:"username profileImage.secure_url -_id"
+            }]
+            )
+            .paginate();
 
-    const skip=(page-1)*limit
+        const recipes = await apiFeatures.execute();
 
-    let queryFilters={}
-    if(categoryID) queryFilters.category=categoryID
-    if(countryID) queryFilters.country=countryID
-    if(rate) queryFilters.Average_rating=rate
-    if(name) queryFilters.name=name
-    if(slug){ 
-        queryFilters.slug=slugify(slug, { replacement: "_", lower: true })
+        res.status(200).json({
+            success: true,
+            recipes
+        });
     }
-    queryFilters=JSON.stringify(queryFilters)
-    queryFilters=queryFilters.replace(/gt|gte|lt|lte|regex|ne|eq/g, (element)=>`$${element}`);
-    queryFilters=JSON.parse(queryFilters)
-    const recipes=await Recipe.paginate(queryFilters,{
-        page,
-        limit
-        ,skip,
-        select:"-createdAt -updatedAt -Images.URLs.public_id -Images.URLs._id -Images.customID -slug -ingredients._id -__v",
-        populate:[{
-            path:"country",
-            select:"name"
-        },
-        {
-            path:"category",
-            select:"name"
-        },
-        {
-            path:"ingredients.ingredient",
-            select:"name image.secure_url _id basePrice appliedPrice stock Average_rating discount"
-        },
-    {
-        path:"createdBy",
-        select:"username profileImage.secure_url -_id"
-    }],
-        sort:{views:-1}
-    })
-    res.status(200).json({
-        sucess:true,
-        recipes
-    })
-}

@@ -3,6 +3,7 @@ import slugify from 'slugify';
 import Ingredient from '../../../DB/models/ingredient.model.js';
 import { cloudinaryConfig, uploadFile } from '../../utils/cloudinary.utils.js';
 import axios from 'axios';
+import { ApiFeatures } from '../../utils/api-features.js';
 
 
 export const addIngredient = async (req, res, next) => {
@@ -182,37 +183,24 @@ export const addMealDBIngredients=async(req,res,next)=>{
 }
 
 export const getIngredients=async(req,res,next)=>{
-    const {page=1,limit=10,...queryFilter}=req.query
-    //rest operator on every request elements except page and limit
-    const {name,slug,appliedPrice,stock}=queryFilter
-    //name,slug,appliedPrice,stock
-    const skip=(page-1)*limit
-    let queryFilters={}
-    if(name) queryFilters.name=name
-    if(slug){ 
-        queryFilters.slug=slugify(slug, { replacement: "_", lower: true })
-    }
-    if(appliedPrice)queryFilters.appliedPrice=appliedPrice
-    if(stock) queryFilters.stock=stock
-    //stringify the object to make replacing on it 
-    queryFilters=JSON.stringify(queryFilters)
-    //replace the operators with the correct mongoDB operators  (gt,gte,lt,lte,regex,ne,eq)
-    queryFilters=queryFilters.replace(/gt|gte|lt|lte|regex|ne|eq/g, (element)=>`$${element}`);
-    //parse the string back to an object  (to be able to use it in mongoose query)
-    queryFilters=JSON.parse(queryFilters)
-    const Ingredients=await Ingredient.paginate(queryFilters,{
-        page,
-        limit
-        ,skip,
-        select:"-createdAt -updatedAt -__v -image.public_id ",
-        sort:{views:-1},
-        populate:[{
+    
+    const apiFeatures = new ApiFeatures(Ingredient, req.query)
+    .filter()
+    .search()
+    .sort()
+    .limitFields("-createdAt -updatedAt -__v -image.public_id")
+    .populate(
+        [{
             path:"createdBy",
             select:"username profileImage.secure_url -_id"
-        }],
-    })
-    res.status(200).json({
-        sucess:true,
-        Ingredients
-    })
+        }]
+    )
+    .paginate();
+
+const ingredients = await apiFeatures.execute();
+
+res.status(200).json({
+    success: true,
+    ingredients
+});
 }
