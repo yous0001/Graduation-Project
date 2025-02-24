@@ -52,6 +52,12 @@ export class ApiFeatures {
         const excludedFields = ["sort", "page", "limit", "fields", "search", "populate"];
         excludedFields.forEach((el) => delete queryObj[el]);
 
+        for (let key in queryObj) {
+            if (queryObj[key] === null || queryObj[key] === undefined || queryObj[key] === ""|| queryObj[key] === 'null') {
+                delete queryObj[key];
+            }
+        }
+
         let queryStr = JSON.stringify(queryObj);
         queryStr = queryStr.replace(/gt|gte|lt|lte|regex|ne|eq/g, (match) => `$${match}`);
         this.queryFilters = JSON.parse(queryStr);
