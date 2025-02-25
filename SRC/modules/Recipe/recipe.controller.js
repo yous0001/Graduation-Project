@@ -48,8 +48,7 @@ export const addRecipe=async (req,res,next)=>{
             return next(new Error('Ingredient not found',{cause:404}));
         }
     }
-    const customID=nanoid(6)
-    const folder=`${process.env.UPLOADS_FOLDER}/Categories/${isCategoryExists.name}/Recipes/${customID}` 
+    const folder = `${process.env.UPLOADS_FOLDER}/Categories/${isCategoryExists.name}/Recipes`;
     for (const img of req.files){
         const {public_id,secure_url} = await uploadFile({
             file:img.path,
@@ -67,10 +66,7 @@ export const addRecipe=async (req,res,next)=>{
         createdBy:user._id,
         category,
         country,
-        Images:{
-            URLs,
-            customID
-        },
+        Images:{URLs},
         tags,
         videoLink
     }
@@ -223,10 +219,7 @@ export const addMealDBRecipes = async (req, res, next) => {
                         createdBy: req.user._id,
                         category: category._id,
                         country: country._id,
-                        Images: {
-                            URLs: [image],
-                            customID: nanoid(6),
-                        },
+                        Images: {URLs: [image]},
                         tags: strTags ? strTags.split(",") : [],
                         videoLink: strYoutube || null,
                     };

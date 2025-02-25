@@ -42,8 +42,7 @@ const recipeSchema = new mongoose.Schema({
                 type:String,
                 required: true
             } 
-        }],
-        customID:{type:String, required:true}
+        }]
     },
     videoLink:{ 
         type: String
