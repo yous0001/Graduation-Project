@@ -6,6 +6,7 @@ import { forgetPasswordRequestEmailTemplete, loginVerificationEmailTemplete, res
 import { generateVerificationCode } from '../../utils/generateVerificationCode.js';
 import crypto from 'crypto';
 import { cloudinaryConfig } from './../../utils/cloudinary.utils.js';
+import Recipe from './../../../DB/models/recipe.model.js';
 
 export const register = async(req,res,next)=>{
     const {name,email,password,phoneNumbers} = req.body;
@@ -335,14 +336,24 @@ export const updateUser = async(req, res, next)=>{
 
 export const toogleFavourite=async (req,res,next)=>{
     const user = req.user;
-    const { recipeId } = req.params;
-    const isFavorited = user.favoriteRecipes.includes(recipeId);
-    
+    const { recipeID } = req.params;
+    const isFavorited = user.favoriteRecipes.includes(recipeID);
+    const isRecipeExists = await Recipe.findById(recipeID);
+    if (!isRecipeExists) {
+        return res.status(404).json({ message: 'Recipe not found' });
+    }
+
     if (isFavorited) {
-        await User.findByIdAndUpdate(user._id, { $pull: { favoriteRecipes: recipeId } });
+        await User.findByIdAndUpdate(user._id, { $pull: { favoriteRecipes: recipeID } });
         return res.status(200).json({ message: 'Recipe removed from favorites' });
     } else {
-        await User.findByIdAndUpdate(user._id, { $addToSet: { favoriteRecipes: recipeId } });
+        await User.findByIdAndUpdate(user._id, { $addToSet: { favoriteRecipes: recipeID } });
         return res.status(200).json({ message: 'Recipe added to favorites' });
     }
 }
+
+export const getFavouriteRecipes = async (req, res, next) => {
+    const user = req.user;
+    const recipes = await Recipe.find({ _id: { $in: user.favoriteRecipes } });
+    res.status(200).json({ message: 'Favourite recipes', recipes });
+};

@@ -27,4 +27,6 @@ router.get("/forget-password", validationMiddleware(authSchemaes.forgetPasswordS
 router.get("/reset-password/:token",validationMiddleware(authSchemaes.resetPasswordSchema), expressAsyncHandler(authController.resetPassword))
 
 router.post("/toogle-favourite/:recipeID",auth(),validationMiddleware(authSchemaes.toggleFavouriteSchema),expressAsyncHandler(authController.toogleFavourite))
+router.get("/get-favourite",auth(),expressAsyncHandler(authController.getFavouriteRecipes))
+
 export default router
