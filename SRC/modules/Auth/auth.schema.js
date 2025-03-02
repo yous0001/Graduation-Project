@@ -1,4 +1,5 @@
 import Joi from "joi";
+import { validateId } from './../../utils/validateID.js';
 
 const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
 
@@ -140,3 +141,8 @@ export const loginSchema = {
         })
     }),
   }
+export const toggleFavouriteSchema = {
+    params: Joi.object({
+        recipeID: validateId("recipeID"),
+    }),
+};

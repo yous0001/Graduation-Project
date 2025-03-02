@@ -332,3 +332,17 @@ export const updateUser = async(req, res, next)=>{
     delete user.ownedIngredients
     res.status(200).json({message:"user updated successfully",user});
 }
+
+export const toogleFavourite=async (req,res,next)=>{
+    const user = req.user;
+    const { recipeId } = req.params;
+    const isFavorited = user.favoriteRecipes.includes(recipeId);
+    
+    if (isFavorited) {
+        await User.findByIdAndUpdate(user._id, { $pull: { favoriteRecipes: recipeId } });
+        return res.status(200).json({ message: 'Recipe removed from favorites' });
+    } else {
+        await User.findByIdAndUpdate(user._id, { $addToSet: { favoriteRecipes: recipeId } });
+        return res.status(200).json({ message: 'Recipe added to favorites' });
+    }
+}
