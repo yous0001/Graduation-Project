@@ -29,4 +29,7 @@ router.put("/:recipeID",auth([systemRoles.ADMIN]),
 router.get("/list",
 expressAsyncHandler(receipeController.getRecipes))
 
+router.get("/view/:recipeID",
+expressAsyncHandler(receipeController.viewRecipe))
+
 export default router;
