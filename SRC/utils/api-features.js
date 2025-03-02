@@ -64,6 +64,10 @@ export class ApiFeatures {
 
         return this;
     }
+    condition(conditions) {
+        this.queryFilters = {...this.queryFilters,...conditions};
+        return this;
+    }
 
     search() {
         if (this.queryString.search) {

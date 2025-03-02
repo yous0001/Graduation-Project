@@ -7,6 +7,7 @@ import { generateVerificationCode } from '../../utils/generateVerificationCode.j
 import crypto from 'crypto';
 import { cloudinaryConfig } from './../../utils/cloudinary.utils.js';
 import Recipe from './../../../DB/models/recipe.model.js';
+import { ApiFeatures } from '../../utils/api-features.js';
 
 export const register = async(req,res,next)=>{
     const {name,email,password,phoneNumbers} = req.body;
@@ -354,6 +355,29 @@ export const toogleFavourite=async (req,res,next)=>{
 
 export const getFavouriteRecipes = async (req, res, next) => {
     const user = req.user;
-    const recipes = await Recipe.find({ _id: { $in: user.favoriteRecipes } });
+    const apiFeatures = new ApiFeatures(Recipe, req.query)
+            .condition({ _id: { $in: user.favoriteRecipes } })
+            .limitFields("-createdAt -updatedAt -Images.URLs.public_id -Images.URLs._id -Images.customID -slug -ingredients._id -__v")
+            .populate(
+                [{
+                    path:"country",
+                    select:"name"
+                },
+                {
+                    path:"category",
+                    select:"name"
+                },
+                {
+                    path:"ingredients.ingredient",
+                    select:"name image.secure_url _id basePrice appliedPrice stock Average_rating discount"
+                },
+            {
+                path:"createdBy",
+                select:"username profileImage.secure_url -_id"
+            }]
+            )
+            .paginate();
+            
+    const recipes = await apiFeatures.execute();
     res.status(200).json({ message: 'Favourite recipes', recipes });
 };
