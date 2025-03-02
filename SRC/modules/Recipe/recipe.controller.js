@@ -268,6 +268,7 @@ export const updateRecipe=async(req,res,next)=>{
 
 
 export const getRecipes=async(req,res,next)=>{
+    const user=req.user;
     const apiFeatures = new ApiFeatures(Recipe, req.query)
             .filter()
             .search()
@@ -294,7 +295,11 @@ export const getRecipes=async(req,res,next)=>{
             .paginate();
 
         const recipes = await apiFeatures.execute();
-
+        for (let i = 0; i < recipes.docs.length; i++) {
+            let recipeObj = recipes.docs[i].toObject(); 
+            recipeObj.isFavourite = user.favoriteRecipes.includes(recipeObj._id.toString());
+            recipes.docs[i] = recipeObj; 
+        }
         res.status(200).json({
             success: true,
             recipes
