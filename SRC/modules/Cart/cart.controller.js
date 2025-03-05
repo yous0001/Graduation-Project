@@ -27,3 +27,9 @@ export const addToCart=async(req, res, next) => {
 
     return res.status(200).json({ message:"add to cart successfully", cart})
 }
+
+export const getCart=async(req,res,next)=>{
+    const user = req.user;
+    const cart = await Cart.findOne({ userID: user._id }).populate('ingredients.IngredientID',"-createdAt -updatedAt -__v -image.public_id");
+    return res.status(200).json({ cart });
+}

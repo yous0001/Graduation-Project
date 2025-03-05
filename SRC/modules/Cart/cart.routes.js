@@ -7,5 +7,6 @@ import * as cartController from "./cart.controller.js";
 const router=Router()
 
 router.post("/add",auth(),expressAsyncHandler(cartController.addToCart))
+router.get("/",auth(),expressAsyncHandler(cartController.getCart))
 
 export default router 
