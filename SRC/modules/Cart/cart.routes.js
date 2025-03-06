@@ -8,5 +8,6 @@ const router=Router()
 
 router.post("/add",auth(),expressAsyncHandler(cartController.addToCart))
 router.get("/",auth(),expressAsyncHandler(cartController.getCart))
+router.put("/remove/:ingredientId",auth(),expressAsyncHandler(cartController.removeFromCart))
 
 export default router 

@@ -33,3 +33,20 @@ export const getCart=async(req,res,next)=>{
     const cart = await Cart.findOne({ userID: user._id }).populate('ingredients.IngredientID',"-createdAt -updatedAt -__v -image.public_id");
     return res.status(200).json({ cart });
 }
+
+export const removeFromCart=async(req,res,next)=>{
+    const { ingredientId } = req.params;
+    const user = req.user;
+    const cart = await Cart.findOne({ userID: user._id ,"ingredients.IngredientID":ingredientId});
+    if(!cart){
+        return res.status(404).json({ message: 'ingredient not found in cart' });
+    }
+    //cart.subTotal -= cart.ingredients.find(ingred=>ingred.IngredientID==ingredientId).price*cart.ingredients.find(ingred=>ingred.IngredientID==ingredientId).quantity
+    cart.ingredients=cart.ingredients.filter(ingred=>ingred.IngredientID!=ingredientId)
+    cart.subtotal=0
+    cart.ingredients.forEach(ingredient => {
+        cart.subTotal += ingredient.price*ingredient.quantity;
+    });
+    await cart.save()
+    res.status(200).json({cart})
+}
