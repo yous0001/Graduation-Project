@@ -43,7 +43,7 @@ export const removeFromCart=async(req,res,next)=>{
     }
     //cart.subTotal -= cart.ingredients.find(ingred=>ingred.IngredientID==ingredientId).price*cart.ingredients.find(ingred=>ingred.IngredientID==ingredientId).quantity
     cart.ingredients=cart.ingredients.filter(ingred=>ingred.IngredientID!=ingredientId)
-    cart.subtotal=0
+    cart.subTotal=0
     cart.ingredients.forEach(ingredient => {
         cart.subTotal += ingredient.price*ingredient.quantity;
     });
