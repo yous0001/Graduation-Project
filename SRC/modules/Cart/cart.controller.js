@@ -1,6 +1,7 @@
 import Cart from "../../../DB/models/cart.model.js";
 import Ingredient from "../../../DB/models/ingredient.model.js";
 
+
 export const addToCart=async(req, res, next) => {
     const { ingredientId, quantity } = req.body;
     const user = req.user;
@@ -49,4 +50,27 @@ export const removeFromCart=async(req,res,next)=>{
     });
     await cart.save()
     res.status(200).json({cart})
+}
+export const updateCart=async(req,res,next)=>{
+    const { ingredientId } = req.params;
+    const { quantity } = req.body;
+    const user = req.user;
+
+    const cart = await Cart.findOne({ userID: user._id ,"ingredients.IngredientID":ingredientId});
+    if(!cart){
+        return res.status(404).json({ message: 'ingredient not found in cart' });
+    }
+
+    const ingredient=await Ingredient.findOne({_id:ingredientId, stock:{$gte:quantity}})
+    if(!ingredient){
+        return res.status(400).json({ message: 'Ingredient not available' });
+    }
+
+    cart.ingredients.find(ingred=>ingred.IngredientID==ingredientId).quantity=quantity
+    cart.subTotal=0
+    cart.ingredients.forEach(ingredient => {
+        cart.subTotal += ingredient.price*ingredient.quantity;
+    });
+    await cart.save()
+    res.status(200).json({message:"updated sucess",cart})
 }
