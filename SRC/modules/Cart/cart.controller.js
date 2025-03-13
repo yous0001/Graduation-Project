@@ -35,7 +35,7 @@ export const getCart=async(req,res,next)=>{
     if(!cart){
         return res.status(200).json({ message: 'Cart is empty',cart:{ingredients:[],userID:user._id,subTotal:0}});
     }
-    return res.status(200).json({ cart });
+    return res.status(200).json({message:"get cart successfully" ,cart });
 }
 
 export const removeFromCart=async(req,res,next)=>{
@@ -52,7 +52,7 @@ export const removeFromCart=async(req,res,next)=>{
         cart.subTotal += ingredient.price*ingredient.quantity;
     });
     await cart.save()
-    res.status(200).json({cart})
+    res.status(200).json({message:"removed sucess",cart})
 }
 export const updateCart=async(req,res,next)=>{
     const { ingredientId } = req.params;
