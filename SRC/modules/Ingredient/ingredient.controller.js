@@ -4,7 +4,8 @@ import Ingredient from '../../../DB/models/ingredient.model.js';
 import { cloudinaryConfig, uploadFile } from '../../utils/cloudinary.utils.js';
 import axios from 'axios';
 import { ApiFeatures } from '../../utils/api-features.js';
-
+import chalk from "chalk";
+import { discountTypes } from '../../utils/enums.utils.js';
 
 export const addIngredient = async (req, res, next) => {
     const user = req.user;
@@ -115,72 +116,80 @@ export const updateIngredient = async (req, res, next) => {
     res.status(200).json({ success: true, message: "Ingredient updated successfully", ingredient });
 }
 
-export const addMealDBIngredients=async(req,res,next)=>{
-    try {
-        
-        const { data } = await axios.get("https://www.themealdb.com/api/json/v1/1/list.php?i=list");
-        const ingredients = data.meals;
+export const addMealDBIngredients = async (req, res, next) => {
+        try {
+        console.log(chalk.cyan("Fetching ingredients from MealDB API..."));
 
-        if (!ingredients || ingredients.length === 0) {
-            return res.status(404).json({
-                message: "No ingredients found from the API",
-            });
+        const { data: { meals: ingredients } } = await axios.get("https://www.themealdb.com/api/json/v1/1/list.php?i=list");
+    
+        if (!ingredients?.length) {
+            console.log(chalk.yellow("No ingredients found from the API."));
+            return res.status(404).json({ message: "No ingredients found from the API" });
         }
-
+    
         const insertedIngredients = [];
+    
+        for (const { strIngredient, strDescription } of ingredients) {
 
-        for (const item of ingredients) {
-            const { strIngredient } = item;
-
-            
-            const ingredientImageUrl = `https://www.themealdb.com/images/ingredients/${encodeURIComponent(strIngredient)}.png`;
-            const verifyImageResponse = await axios.get(ingredientImageUrl).catch(() => null);
-
-            if (!verifyImageResponse || verifyImageResponse.status !== 200) {
-                console.log(`Image not found for ingredient: ${strIngredient}`);
+            const slug = slugify(strIngredient, { replacement: "_", lower: true });
+            const existingIngredient = await Ingredient.findOne({ slug });
+            if (existingIngredient) {
+                console.log(chalk.yellow(`Skipping: Ingredient already exists: ${strIngredient}`));
                 continue;
             }
 
-            
+            const ingredientImageUrl = `https://www.themealdb.com/images/ingredients/${encodeURIComponent(strIngredient)}.png`;
+    
+            const verifyImageResponse = await axios.get(ingredientImageUrl).catch(() => null);
+            if (!verifyImageResponse || verifyImageResponse.status !== 200) {
+            console.log(chalk.yellow(`Skipping: Image not found for ingredient: ${strIngredient}`));
+            continue;
+            }
+    
+            console.log(chalk.cyan(`Processing ingredient: ${strIngredient}`));
+    
             const uploadedImage = await uploadFile({
-                file: ingredientImageUrl,
-                folder: `${process.env.UPLOADS_FOLDER}/ingredients`,
+            file: ingredientImageUrl,
+            folder: `${process.env.UPLOADS_FOLDER}/ingredients`,
             });
-
-            
-            const basePrice = (Math.random() * (100 - 10) + 10).toFixed(2); 
-            const stock = Math.floor(Math.random() * (500 - 50) + 50); 
-
-            
+    
+            const basePrice = Math.floor(Math.random() * 90 + 10);
+            const stock = Math.floor(Math.random() * 450 + 50);
+    
             const ingredientData = {
-                name: strIngredient,
-                slug: slugify(strIngredient, { replacement: "_", lower: true }),
-                basePrice: parseFloat(basePrice),
-                appliedPrice: parseFloat(basePrice),
-                stock: stock,
-                image: {
-                    public_id: uploadedImage.public_id,
-                    secure_url: uploadedImage.secure_url,
-                },
-                createdBy: req.user._id,
+            name: strIngredient,
+            slug,
+            basePrice,
+            description: strDescription,
+            stock,
+            image: {
+                public_id: uploadedImage.public_id,
+                secure_url: uploadedImage.secure_url,
+            },
+            discount: {
+                type: discountTypes.percentage, 
+                amount: Math.floor(Math.random() * 20), 
+            },
+            createdBy: req.user._id,
             };
-
-            
+    
             const newIngredient = await Ingredient.create(ingredientData);
             insertedIngredients.push(newIngredient);
+    
+            console.log(chalk.green(`Successfully added: ${strIngredient}`));
         }
-
-        
+    
+        console.log(chalk.green.bold(`${insertedIngredients.length} ingredients inserted successfully.`));
+    
         return res.status(201).json({
             message: `${insertedIngredients.length} ingredients inserted successfully.`,
             ingredients: insertedIngredients,
         });
-
-    } catch (error) {
-        console.error("Error fetching and adding ingredients:", error);
-        next(error); 
-    }
-}
+        } catch (error) {
+        console.error(chalk.red("Error fetching and adding ingredients:"), error);
+        next(error);
+        }
+};
 
 export const getIngredients=async(req,res,next)=>{
     

@@ -32,7 +32,7 @@ const ingredientSchema = new mongoose.Schema({
         },
         type:{
             type: String,
-            enum: Object.keys(discountTypes),
+            enum: Object.values(discountTypes),
             default: discountTypes.percentage
         }
     },
@@ -42,10 +42,10 @@ const ingredientSchema = new mongoose.Schema({
         default: function() {
                 let appliedPrice = this.basePrice;
                     switch (this.discount.type) {
-                        case "percentage":
+                        case discountTypes.percentage:
                             appliedPrice = this.basePrice * (1 - this.discount.amount / 100);
                             break;
-                        case "fixed":
+                        case discountTypes.fixed:
                             appliedPrice = this.basePrice - this.discount.amount;
                             break;
                     }
