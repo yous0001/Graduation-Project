@@ -41,14 +41,15 @@ const ingredientSchema = new mongoose.Schema({
         required: true,
         default: function() {
                 let appliedPrice = this.basePrice;
-                    switch (this.discount.type) {
-                        case discountTypes.percentage:
-                            appliedPrice = this.basePrice * (1 - this.discount.amount / 100);
-                            break;
-                        case discountTypes.fixed:
-                            appliedPrice = this.basePrice - this.discount.amount;
-                            break;
-                    }
+                switch (this.discount.type) {
+                    case discountTypes.percentage:
+                        appliedPrice = (ingredient.basePrice * (1 - ingredient.discount.amount / 100)).toFixed(2);
+                        break;
+                    case discountTypes.fixed:
+                        appliedPrice = (ingredient.basePrice - ingredient.discount.amount).toFixed(2);
+                        break;
+                }
+                appliedPrice = parseFloat(appliedPrice);
                 return appliedPrice;
             }
     },

@@ -155,7 +155,10 @@ export const addMealDBIngredients = async (req, res, next) => {
     
             const basePrice = Math.floor(Math.random() * 90 + 10);
             const stock = Math.floor(Math.random() * 450 + 50);
-    
+
+            const randomDiscount = Math.floor(Math.random() * 20);
+            const discountAmount = randomDiscount < 4 ? 0 : randomDiscount;
+
             const ingredientData = {
             name: strIngredient,
             slug,
@@ -168,7 +171,7 @@ export const addMealDBIngredients = async (req, res, next) => {
             },
             discount: {
                 type: discountTypes.percentage, 
-                amount: Math.floor(Math.random() * 20), 
+                amount: discountAmount, 
             },
             createdBy: req.user._id,
             };
