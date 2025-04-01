@@ -68,6 +68,10 @@ const ingredientSchema = new mongoose.Schema({
         max:5,
         default: 0,
     },
+    sellings: {
+        type: Number,
+        default: 0
+    },
     createdBy: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
