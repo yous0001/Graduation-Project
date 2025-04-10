@@ -8,7 +8,12 @@ const bannerSchema = new mongoose.Schema({
     Images:[{
         public_id:{type:String},
         secure_url:{type:String}
-    }]
+    }],
+    addedBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
+    }
 },{timestamps:true});
 
 

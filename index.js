@@ -7,6 +7,7 @@ import countryRouter from './SRC/modules/Country/country.router.js';
 import ingredientRouter from "./SRC/modules/Ingredient/ingredient.router.js";
 import receipeRouter from "./SRC/modules/Recipe/recipe.router.js";
 import cartRouter from "./SRC/modules/Cart/cart.routes.js";
+import bannerRouter from "./SRC/modules/Banner/banners.routes.js";
 import { globalResponse } from './SRC/middlewares/globalResponce.js';
 import { cloudinaryConfig } from './SRC/utils/cloudinary.utils.js';
 
@@ -25,6 +26,7 @@ app.use('/country',countryRouter)
 app.use('/ingredient',ingredientRouter)
 app.use('/recipe',receipeRouter)
 app.use('/cart',cartRouter)
+app.use('/banner',bannerRouter)
 app.use(globalResponse)
 db_connection();
 
