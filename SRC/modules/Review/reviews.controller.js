@@ -24,11 +24,19 @@ export const addReview=async(req,res,next)=>{
         if (!targetDoc) {
             return res.status(404).json({ message: "Recipe not found" });
         }
+        const existingReview = await Review.findOne({ recipe: recipeId, userID });
+        if (existingReview) {
+            return res.status(400).json({ message: "You have already reviewed this recipe" });
+        }
     } else if (ingredientId) {
         targetModel = Ingredient;
         targetDoc = await Ingredient.findById(ingredientId);
         if (!targetDoc) {
             return res.status(404).json({ message: "Ingredient not found" });
+        }
+        const existingReview = await Review.findOne({ ingredient: ingredientId, userID });
+        if (existingReview) {
+            return res.status(400).json({ message: "You have already reviewed this ingredient" });
         }
     }
     const newReview = await Review.create({
@@ -94,3 +102,43 @@ export const addReaction=async(req,res,next)=>{
     });
     
 }
+
+export const deleteReview = async (req, res, next) => {
+    const { reviewId } = req.params;
+    const userID = req.user._id;
+
+    const review = await Review.findById(reviewId);
+    if (!review) {
+        return res.status(404).json({ message: "Review not found" });
+    }
+
+    if (review.userID.toString() !== userID.toString()) {
+        return res.status(403).json({ message: "You are not allowed to delete this review" });
+    }
+
+    let targetDoc = null;
+    if (review.recipe) {
+        targetDoc = await Recipe.findById(review.recipe);
+    } else if (review.ingredient) {
+        targetDoc = await Ingredient.findById(review.ingredient);
+    }
+
+    if (!targetDoc) {
+        return res.status(404).json({ message: "Target item not found" });
+    }
+    //average*numberOfRating=>totalreviews
+    const total = targetDoc.Average_rating * targetDoc.number_of_ratings;
+    targetDoc.number_of_ratings -= 1;
+
+    if (targetDoc.number_of_ratings === 0) {
+        targetDoc.Average_rating = 0;
+    } else {
+        const newTotal = total - review.rate;//decrease total by value of review rate so that we return total to last state
+        targetDoc.Average_rating = newTotal / targetDoc.number_of_ratings;//calculate new average by dividing total by number of ratings after we decrement it 
+    }
+
+    await targetDoc.save();
+    await Review.findByIdAndDelete(reviewId);
+
+    res.status(200).json({ message: "Review deleted successfully" });
+};
