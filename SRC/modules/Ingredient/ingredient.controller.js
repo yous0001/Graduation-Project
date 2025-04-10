@@ -6,6 +6,7 @@ import axios from 'axios';
 import { ApiFeatures } from '../../utils/api-features.js';
 import chalk from "chalk";
 import { discountTypes } from '../../utils/enums.utils.js';
+import Cart from '../../../DB/models/cart.model.js';
 
 export const addIngredient = async (req, res, next) => {
     const user = req.user;
@@ -195,7 +196,7 @@ export const addMealDBIngredients = async (req, res, next) => {
 };
 
 export const getIngredients=async(req,res,next)=>{
-    
+    const user=req.user;
     const apiFeatures = new ApiFeatures(Ingredient, req.query)
     .filter()
     .search()
@@ -210,6 +211,27 @@ export const getIngredients=async(req,res,next)=>{
     .paginate();
 
 const ingredients = await apiFeatures.execute();
+const cart=await Cart.findOne({userID:user._id})
+if(!cart){
+    ingredients.docs = ingredients.docs.map(ing => {
+        const ingObj = ing.toObject();
+        ingObj.inCart = false;
+        return ingObj;
+    });
+    return res.status(200).json({
+        success: true,
+        ingredients
+    });
+}
+const ingredientIDsInCart = new Set(
+    cart.ingredients.map(item => item.IngredientID.toString())
+);
+
+for (let i = 0; i < ingredients.docs.length; i++) {
+    let ingObj = ingredients.docs[i].toObject();
+    ingObj.inCart = ingredientIDsInCart.has(ingObj._id.toString());
+    ingredients.docs[i] = ingObj;
+}
 
 res.status(200).json({
     success: true,

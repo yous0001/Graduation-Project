@@ -24,6 +24,6 @@ router.put('/update/:id',
 router.post('/add-mealDB',
         auth([systemRoles.ADMIN]),
         expressAsyncHandler(ingredientController.addMealDBIngredients))
-router.get('/list',
+router.get('/list',auth(),
         expressAsyncHandler(ingredientController.getIngredients))
 export default router
