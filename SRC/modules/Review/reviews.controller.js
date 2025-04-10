@@ -142,3 +142,43 @@ export const deleteReview = async (req, res, next) => {
 
     res.status(200).json({ message: "Review deleted successfully" });
 };
+
+export const updateReview = async (req, res, next) => {
+    const { reviewId } = req.params;
+    const { rate, comment } = req.body;
+    const userID = req.user._id;
+
+    const review = await Review.findById(reviewId);
+    if (!review) {
+        return res.status(404).json({ message: "Review not found" });
+    }
+
+    if (review.userID.toString() !== userID.toString()) {
+        return res.status(403).json({ message: "You are not allowed to update this review" });
+    }
+
+    let targetDoc = null;
+    if (review.recipe) {
+        targetDoc = await Recipe.findById(review.recipe);
+    } else if (review.ingredient) {
+        targetDoc = await Ingredient.findById(review.ingredient);
+    }
+
+    if (!targetDoc) {
+        return res.status(404).json({ message: "Target item not found" });
+    }
+
+    // Update average rating if the rate changed
+    if (rate && rate !== review.rate) {
+        const total = targetDoc.Average_rating * targetDoc.number_of_ratings;//get total rating
+        const newTotal = total - review.rate + rate;//remove last  rate and add new rate
+        targetDoc.Average_rating = newTotal / targetDoc.number_of_ratings;//calculate new average
+        review.rate = rate;//change it in review model
+    }
+
+    if (comment !== undefined) review.comment = comment;//we don't make it !comment to handle if user wants to remove comment
+    await review.save();
+    await targetDoc.save();
+
+    res.status(200).json({ message: "Review updated successfully", review });
+};
