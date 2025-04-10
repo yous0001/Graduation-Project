@@ -51,3 +51,46 @@ export const addReview=async(req,res,next)=>{
     res.status(200).json({ message: "Review added successfully", review: newReview });
 }
 
+export const addReaction=async(req,res,next)=>{
+    const { reviewId } = req.params;
+    const { action } = req.query; // "like" or "dislike"
+    const userId = req.user._id;
+    
+    if (!["like", "dislike"].includes(action)) {
+        return res.status(400).json({ message: "Invalid action. Must be 'like' or 'dislike'." });
+    }
+    
+    const review = await Review.findById(reviewId);
+    if (!review) {
+        return res.status(404).json({ message: "Review not found." });
+    }
+    
+    const alreadyLiked = review.likes.includes(userId);
+    const alreadyDisliked = review.dislikes.includes(userId);
+
+    if (action === "like") {
+        if (alreadyLiked) {
+        review.likes.pull(userId); //if already liked toggle off
+        } else {
+        review.likes.push(userId);//if not already liked toggle on
+        if (alreadyDisliked) review.dislikes.pull(userId); //if already disliked toggle off
+        }
+    }
+
+    if (action === "dislike") {
+        if (alreadyDisliked) {
+        review.dislikes.pull(userId); //if already disliked toggle off
+        } else {
+        review.dislikes.push(userId); //if not already disliked toggle on
+        if (alreadyLiked) review.likes.pull(userId); //if already liked toggle off
+        }
+    }
+    
+    await review.save();
+    return res.status(200).json({
+        message: `added ${action} to review successfully`,
+        likes: review.likes.length,
+        dislikes: review.dislikes.length,
+    });
+    
+}
