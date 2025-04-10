@@ -32,9 +32,6 @@ export const addToCart=async(req, res, next) => {
 export const getCart=async(req,res,next)=>{
     const user = req.user;
     const cart = await Cart.findOne({ userID: user._id }).populate('ingredients.IngredientID',"-createdAt -updatedAt -__v -image.public_id");
-    if(!cart){
-        return res.status(200).json({ message: 'Cart is empty',cart:{ingredients:[],userID:user._id,subTotal:0}});
-    }
     return res.status(200).json({message:"get cart successfully" ,cart });
 }
 
@@ -81,6 +78,6 @@ export const updateCart=async(req,res,next)=>{
 
 export const clearCart=async(req,res,next)=>{
     const user = req.user;
-    const cart = await Cart.findOneAndDelete({ userID: user._id });
+    await Cart.findOneAndDelete({ userID: user._id });
     res.status(200).json({ message:"cart cleared successfully"})
 }
