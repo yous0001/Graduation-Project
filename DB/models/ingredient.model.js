@@ -68,6 +68,10 @@ const ingredientSchema = new mongoose.Schema({
         max:5,
         default: 0,
     },
+    number_of_ratings: {
+        type: Number,
+        default: 0
+    },
     sellings: {
         type: Number,
         default: 0

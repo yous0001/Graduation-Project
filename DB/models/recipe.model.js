@@ -66,6 +66,10 @@ const recipeSchema = new mongoose.Schema({
         max:5,
         default: 0 
     },
+    number_of_ratings: {
+        type: Number,
+        default: 0
+    },
     badges:{
         type: String,
         enum: Object.values(Badges),
