@@ -182,3 +182,16 @@ export const updateReview = async (req, res, next) => {
 
     res.status(200).json({ message: "Review updated successfully", review });
 };
+
+export const getReviews = async (req, res, next) => {
+    const { recipeId, ingredientId } = req.query;
+    if (!recipeId && !ingredientId) {
+        return res.status(400).json({ message: "Please provide either recipeId or ingredientId" });
+    }
+
+    if (recipeId && ingredientId) {
+        return res.status(400).json({ message: "Please provide only one of recipeId or ingredientId, not both" });
+    }
+    const reviews = await Review.find({ recipe: recipeId || null, ingredient: ingredientId || null }).populate("userID");
+    res.status(200).json({ reviews });
+};
