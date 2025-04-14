@@ -192,6 +192,6 @@ export const getReviews = async (req, res, next) => {
     if (recipeId && ingredientId) {
         return res.status(400).json({ message: "Please provide only one of recipeId or ingredientId, not both" });
     }
-    const reviews = await Review.find({ recipe: recipeId || null, ingredient: ingredientId || null }).populate("userID");
+    const reviews = await Review.find({ recipe: recipeId || null, ingredient: ingredientId || null }).populate({path:"userID",select:"username email profileImage.secure_url"});
     res.status(200).json({ reviews });
 };
