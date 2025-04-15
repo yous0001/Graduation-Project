@@ -9,6 +9,7 @@ import receipeRouter from "./SRC/modules/Recipe/recipe.router.js";
 import cartRouter from "./SRC/modules/Cart/cart.routes.js";
 import bannerRouter from "./SRC/modules/Banner/banners.routes.js";
 import reviewRouter from "./SRC/modules/Review/reviews.routes.js";
+import aiRouter from "./SRC/modules/Ai/ai.routes.js";
 import { globalResponse } from './SRC/middlewares/globalResponce.js';
 import { cloudinaryConfig } from './SRC/utils/cloudinary.utils.js';
 
@@ -29,6 +30,8 @@ app.use('/recipe',receipeRouter)
 app.use('/cart',cartRouter)
 app.use('/banner',bannerRouter)
 app.use('/review',reviewRouter)
+app.use('/ai',aiRouter)
+
 app.use(globalResponse)
 db_connection();
 

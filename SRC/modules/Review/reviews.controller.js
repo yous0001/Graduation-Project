@@ -49,14 +49,14 @@ export const addReview=async(req,res,next)=>{
 
     if (!newReview) 
         return res.status(500).json({ message: "Failed to create review" });
-
+    const populatedReview=await Review.findById(newReview._id).populate({path:"userID",select:"username email profileImage.secure_url"});
     //average*numberOfRating=>totalreviews
     //totalReviews+rate/(numberOfReviews+1)=>to get new average
     targetDoc.Average_rating=(targetDoc.Average_rating*(targetDoc.number_of_ratings)+rate)/(targetDoc.number_of_ratings+1)
     targetDoc.number_of_ratings=targetDoc.number_of_ratings+1
     await targetDoc.save();
 
-    res.status(200).json({ message: "Review added successfully", review: newReview });
+    res.status(201).json({ message: "Review added successfully", review: populatedReview });
 }
 
 export const addReaction=async(req,res,next)=>{
