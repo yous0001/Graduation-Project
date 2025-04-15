@@ -1,5 +1,5 @@
 import { v2 as cloudinary } from "cloudinary";
-
+import streamifier from 'streamifier';
 
 export const cloudinaryConfig=()=>{
     cloudinary.config({
@@ -30,4 +30,22 @@ export const uploadFile = async ({ file, folder = "General", publicId }) => {
     
         return { secure_url, public_id };
     };
-  
+
+
+export function uploadFileBuffer({ buffer, filename, folder }) {
+    return new Promise((resolve, reject) => {
+        const uploadStream = cloudinaryConfig().uploader.upload_stream(
+            {
+                folder,
+                public_id: filename.replace(/\.[^/.]+$/, ''), // Remove extension
+                resource_type: 'image',
+            },
+            (error, result) => {
+                if (error) reject(error);
+                else resolve(result);
+            }
+        );
+
+        streamifier.createReadStream(buffer).pipe(uploadStream);
+    });
+}

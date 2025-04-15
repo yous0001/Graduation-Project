@@ -1,9 +1,7 @@
 import axios from "axios";
-import chalk from "chalk";
-import fs from "fs"
-import { uploadFile } from "../../utils/cloudinary.utils.js";
-import path from "path"
-import { fileURLToPath } from 'url';
+import { uploadFile ,uploadFileBuffer} from "../../utils/cloudinary.utils.js";
+
+
 
 export const getRecommendation=async(req,res,next)=>{
     try {
@@ -153,15 +151,15 @@ async function generateImage(prompt) {
 
     try {
         const response = await axios.post(API_URL, data, { headers, responseType: 'arraybuffer' });
-        const __dirname = path.dirname(fileURLToPath(import.meta.url));
-        const tempImagePath = path.join(__dirname, 'recipe_temp.png');
-        fs.writeFileSync(tempImagePath, response.data);
-        // 3. Upload to Cloudinary
-        const uploadResult= await uploadFile({
-            file:tempImagePath,
-            folder:`${process.env.UPLOADS_FOLDER}/chat-recipes`
-        })
-        fs.unlinkSync(tempImagePath);
+        const imageBuffer = Buffer.from(response.data, 'binary');
+
+        // Upload the buffer directly
+        const uploadResult = await uploadFileBuffer({
+            buffer: imageBuffer,
+            filename: 'recipe_temp.png',
+            folder: `${process.env.UPLOADS_FOLDER}/chat-recipes`,
+        });
+
         return uploadResult.secure_url;
     } catch (error) {
         console.error('❌ Error:', error.response?.data || error.message);
