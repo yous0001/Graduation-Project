@@ -32,6 +32,9 @@ app.use('/banner',bannerRouter)
 app.use('/review',reviewRouter)
 app.use('/ai',aiRouter)
 
+app.use("*",(req,res,next)=>{
+    res.status(404).json({success:false,message:"API endpoint not found"})
+})
 app.use(globalResponse)
 db_connection();
 
