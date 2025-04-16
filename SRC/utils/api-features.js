@@ -79,6 +79,8 @@ export class ApiFeatures {
     sort() {
         if (this.queryString.sort) {
             this.options.sort = this.queryString.sort.split(",").join(" ");
+        } else {
+            this.options.sort = "-views _id"; 
         }
         return this;
     }

@@ -143,8 +143,8 @@ async function generateImage(prompt) {
     'Authorization': `Bearer ${process.env.HUGGINGFACE_TOKEN}`,
     'Content-Type': 'application/json'
     };
-    prompt=prompt.split("ingredients")[0]
-    console.log(prompt)
+    //prompt=prompt.split("ingredients")[0]
+    //console.log(prompt)
     const data = {
     inputs: prompt+" note:please make it be looks delicious as much as possible , i need one image for the output recipe"
     };
