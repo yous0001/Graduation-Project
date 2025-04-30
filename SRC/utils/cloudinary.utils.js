@@ -33,11 +33,14 @@ export const uploadFile = async ({ file, folder = "General", publicId }) => {
 
 
 export function uploadFileBuffer({ buffer, filename, folder }) {
+    const sanitizedPublicId = filename
+            .replace(/\.[^/.]+$/, '') // Remove file extension
+            .replace(/[^a-zA-Z0-9_/-]/g, '-')
     return new Promise((resolve, reject) => {
         const uploadStream = cloudinaryConfig().uploader.upload_stream(
             {
                 folder,
-                public_id: filename.replace(/\.[^/.]+$/, ''), // Remove extension
+                public_id: sanitizedPublicId, // Remove extension
                 resource_type: 'image',
             },
             (error, result) => {
