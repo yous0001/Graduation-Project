@@ -49,12 +49,16 @@ export const addReview=async(req,res,next)=>{
 
     if (!newReview) 
         return res.status(500).json({ message: "Failed to create review" });
-    const populatedReview=await Review.findById(newReview._id).populate({path:"userID",select:"username email profileImage.secure_url"});
+    let populatedReview=await Review.findById(newReview._id).populate({path:"userID",select:"username email profileImage.secure_url"});
     //average*numberOfRating=>totalreviews
     //totalReviews+rate/(numberOfReviews+1)=>to get new average
     targetDoc.Average_rating=(targetDoc.Average_rating*(targetDoc.number_of_ratings)+rate)/(targetDoc.number_of_ratings+1)
     targetDoc.number_of_ratings=targetDoc.number_of_ratings+1
     await targetDoc.save();
+    
+    populatedReview=populatedReview.toObject();
+    populatedReview.likesCount=populatedReview.likes.length||0;
+    populatedReview.dislikesCount=populatedReview.dislikes.length||0;
 
     res.status(201).json({ message: "Review added successfully", review: populatedReview });
 }
@@ -148,7 +152,7 @@ export const updateReview = async (req, res, next) => {
     const { rate, comment } = req.body;
     const userID = req.user._id;
 
-    const review = await Review.findById(reviewId);
+    let review = await Review.findById(reviewId);
     if (!review) {
         return res.status(404).json({ message: "Review not found" });
     }
@@ -180,6 +184,9 @@ export const updateReview = async (req, res, next) => {
     await review.save();
     await targetDoc.save();
 
+    review=review.toObject();
+    review.likesCount=review.likes.length||0;
+    review.dislikesCount=review.dislikes.length||0;
     res.status(200).json({ message: "Review updated successfully", review });
 };
 
@@ -193,5 +200,10 @@ export const getReviews = async (req, res, next) => {
         return res.status(400).json({ message: "Please provide only one of recipeId or ingredientId, not both" });
     }
     const reviews = await Review.find({ recipe: recipeId || null, ingredient: ingredientId || null }).populate({path:"userID",select:"username email profileImage.secure_url"});
+    const reviewsWithCounts = reviews.map((review) => ({
+        ...review.toObject(),
+        likesCount: review.likes?.length || 0,
+        dislikesCount: review.dislikes?.length || 0
+    }));
     res.status(200).json({ reviews });
 };
