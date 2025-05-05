@@ -319,7 +319,7 @@ export const updateUser = async(req, res, next)=>{
     if(age)
         user.age=age;
     if(address)
-        user.addresses=address;
+        user.addresses[0]=address;
     await user.save();
     user=user.toObject();
     delete user.profileImage?.public_id

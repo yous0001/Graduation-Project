@@ -205,5 +205,5 @@ export const getReviews = async (req, res, next) => {
         likesCount: review.likes?.length || 0,
         dislikesCount: review.dislikes?.length || 0
     }));
-    res.status(200).json({ reviews });
+    res.status(200).json({ reviews:reviewsWithCounts });
 };
