@@ -22,6 +22,6 @@ export const orderStatuses = {
     delivered: "delivered",//order is delivered
     returned:"returned",//order is returned because user reject it 
     dropped:"dropped",//order is dropped because it's expired or order has problem like expired
-    refunded:"refunded",//order is refunded and payment has been refunded
+    refunded:"refunded",//order is refunded and payment has been refunded but with reason like order has problem or expired
     onway:"onway",//order is on way by delivery man
 };
