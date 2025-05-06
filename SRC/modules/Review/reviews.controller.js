@@ -2,14 +2,14 @@ import Ingredient from "../../../DB/models/ingredient.model.js";
 import Recipe from "../../../DB/models/recipe.model.js";
 import Review from "../../../DB/models/review.model.js";
 
-export const addReview=async(req,res,next)=>{
+export const addReview = async (req, res, next) => {
     const { recipeId, ingredientId, rate, comment } = req.body;
     const userID = req.user._id; // assume user is logged in
 
     if (!rate || (!recipeId && !ingredientId)) {
         return res.status(400).json({ message: "Missing required fields" });
     }
-  
+
     if (recipeId && ingredientId) {
         return res.status(400).json({ message: "Review can be for either recipe or ingredient, not both." });
     }
@@ -47,64 +47,64 @@ export const addReview=async(req,res,next)=>{
         ingredient: ingredientId || null,
     });
 
-    if (!newReview) 
+    if (!newReview)
         return res.status(500).json({ message: "Failed to create review" });
-    let populatedReview=await Review.findById(newReview._id).populate({path:"userID",select:"username email profileImage.secure_url"});
+    let populatedReview = await Review.findById(newReview._id).populate({ path: "userID", select: "username email profileImage.secure_url" });
     //average*numberOfRating=>totalreviews
     //totalReviews+rate/(numberOfReviews+1)=>to get new average
-    targetDoc.Average_rating=(targetDoc.Average_rating*(targetDoc.number_of_ratings)+rate)/(targetDoc.number_of_ratings+1)
-    targetDoc.number_of_ratings=targetDoc.number_of_ratings+1
+    targetDoc.Average_rating = (targetDoc.Average_rating * (targetDoc.number_of_ratings) + rate) / (targetDoc.number_of_ratings + 1)
+    targetDoc.number_of_ratings = targetDoc.number_of_ratings + 1
     await targetDoc.save();
-    
-    populatedReview=populatedReview.toObject();
-    populatedReview.likesCount=populatedReview.likes.length||0;
-    populatedReview.dislikesCount=populatedReview.dislikes.length||0;
+
+    populatedReview = populatedReview.toObject();
+    populatedReview.likesCount = populatedReview.likes.length || 0;
+    populatedReview.dislikesCount = populatedReview.dislikes.length || 0;
 
     res.status(201).json({ message: "Review added successfully", review: populatedReview });
 }
 
-export const addReaction=async(req,res,next)=>{
+export const addReaction = async (req, res, next) => {
     const { reviewId } = req.params;
     const { action } = req.query; // "like" or "dislike"
     const userId = req.user._id;
-    
+
     if (!["like", "dislike"].includes(action)) {
         return res.status(400).json({ message: "Invalid action. Must be 'like' or 'dislike'." });
     }
-    
+
     const review = await Review.findById(reviewId);
     if (!review) {
         return res.status(404).json({ message: "Review not found." });
     }
-    
+
     const alreadyLiked = review.likes.includes(userId);
     const alreadyDisliked = review.dislikes.includes(userId);
 
     if (action === "like") {
         if (alreadyLiked) {
-        review.likes.pull(userId); //if already liked toggle off
+            review.likes.pull(userId); //if already liked toggle off
         } else {
-        review.likes.push(userId);//if not already liked toggle on
-        if (alreadyDisliked) review.dislikes.pull(userId); //if already disliked toggle off
+            review.likes.push(userId);//if not already liked toggle on
+            if (alreadyDisliked) review.dislikes.pull(userId); //if already disliked toggle off
         }
     }
 
     if (action === "dislike") {
         if (alreadyDisliked) {
-        review.dislikes.pull(userId); //if already disliked toggle off
+            review.dislikes.pull(userId); //if already disliked toggle off
         } else {
-        review.dislikes.push(userId); //if not already disliked toggle on
-        if (alreadyLiked) review.likes.pull(userId); //if already liked toggle off
+            review.dislikes.push(userId); //if not already disliked toggle on
+            if (alreadyLiked) review.likes.pull(userId); //if already liked toggle off
         }
     }
-    
+
     await review.save();
     return res.status(200).json({
         message: `added ${action} to review successfully`,
         likes: review.likes.length,
         dislikes: review.dislikes.length,
     });
-    
+
 }
 
 export const deleteReview = async (req, res, next) => {
@@ -184,14 +184,16 @@ export const updateReview = async (req, res, next) => {
     await review.save();
     await targetDoc.save();
 
-    review=review.toObject();
-    review.likesCount=review.likes.length||0;
-    review.dislikesCount=review.dislikes.length||0;
+    review = review.toObject();
+    review.likesCount = review.likes.length || 0;
+    review.dislikesCount = review.dislikes.length || 0;
     res.status(200).json({ message: "Review updated successfully", review });
 };
 
 export const getReviews = async (req, res, next) => {
     const { recipeId, ingredientId } = req.query;
+    const user = req.user;
+
     if (!recipeId && !ingredientId) {
         return res.status(400).json({ message: "Please provide either recipeId or ingredientId" });
     }
@@ -199,11 +201,17 @@ export const getReviews = async (req, res, next) => {
     if (recipeId && ingredientId) {
         return res.status(400).json({ message: "Please provide only one of recipeId or ingredientId, not both" });
     }
-    const reviews = await Review.find({ recipe: recipeId || null, ingredient: ingredientId || null }).populate({path:"userID",select:"username email profileImage.secure_url"});
-    const reviewsWithCounts = reviews.map((review) => ({
-        ...review.toObject(),
-        likesCount: review.likes?.length || 0,
-        dislikesCount: review.dislikes?.length || 0
-    }));
-    res.status(200).json({ reviews:reviewsWithCounts });
+    const reviews = await Review.find({ recipe: recipeId || null, ingredient: ingredientId || null }).populate({ path: "userID", select: "username email profileImage.secure_url" });
+    const reviewsWithCounts = reviews.map((review) => {
+        const userIdStr = user._id.toString();
+        const hasLiked = review.likes?.some(id => id.toString() === userIdStr) || false;
+        const hasDisliked = review.dislikes?.some(id => id.toString() === userIdStr) || false;
+        return {
+            ...review.toObject(),
+            likesCount: review.likes?.length || 0,
+            dislikesCount: review.dislikes?.length || 0,
+            userAction: hasLiked ? "like" : hasDisliked ? "dislike" : null,
+        }
+    });
+    res.status(200).json({ reviews: reviewsWithCounts ,user:user._id});
 };

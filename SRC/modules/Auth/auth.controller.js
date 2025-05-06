@@ -99,7 +99,7 @@ export const login = async(req,res,next)=>{
 export const verifyLoginCode = async(req,res,next)=>{
     const {code}=req.body;
 
-    const user = await User.findOne({verificationCode:code,
+    let user = await User.findOne({verificationCode:code,
         verificationCodeExpires:{ $gt: Date.now() }});
     if(!user){
         return res.status(404).json({message:"Invalid verification code"});
@@ -108,11 +108,29 @@ export const verifyLoginCode = async(req,res,next)=>{
     user.verificationCodeExpires = null;
     user.isLoggedIn=true;
     await user.save();
+    user=user.toObject();
+
+    delete user.profileImage?.public_id
+    delete user.password;
+    delete user.isEmailVerified
+    delete user.isLoggedIn
+    delete user.verificationCode
+    delete user.verificationCodeExpires
+    delete user.resetPasswordExpires
+    delete user.resetPasswordToken
+    delete user.favoriteRecipes
+    delete user.ownedIngredients
+    delete user.createdAt
+    delete user.updatedAt
+    delete user.age
+    delete user.__v
+    delete user.phoneNumbers
+    delete user.addresses
 
     const accessToken=jwt.sign({email:user.email,id:user._id},process.env.JWT_SECRET_LOGIN,{expiresIn:"1d"})
     const refreshToken=jwt.sign({id:user._id},process.env.JWT_SECRET_refresh,{expiresIn:"6d"})
 
-    res.status(200).json({message:"login successful",accessToken:accessToken,refreshToken})
+    res.status(200).json({message:"login successful",accessToken:accessToken,refreshToken,...user})
     }
 
 
