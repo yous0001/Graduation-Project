@@ -283,45 +283,84 @@ export async function parseMarkdownToJson(markdownText) {
 }
 
 
-export async function generateImageForGemini(recipeJson) {
+
+export async function generateImageForGemini(recipeJson, retries = 2) {
     const API_URL = 'https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0';
-    const headers = {
-        Authorization: `Bearer ${process.env.HUGGINGFACE_TOKEN}`,
-        'Content-Type': 'application/json',
-    };
-    console.log(recipeJson.title,recipeJson.description)
-    // Craft a prompt from the recipe JSON
+    const acceptTypes = ['image/png', 'image/jpeg']; 
+    let lastError = null;
+
+    
+    console.log('Recipe:', { title: recipeJson.title, description: recipeJson.description });
+
+    
     const prompt = `
-      A beautifully plated dish of ${recipeJson.title.toLowerCase()}, showcasing ${recipeJson.description.split('.')[0].toLowerCase()}. 
-      The presentation is vibrant, appetizing, and professionally styled, with garnishes and a clean, modern background. 
-      Emphasize rich colors, fresh ingredients, and a delicious, inviting look. 
-      One high-quality image for a recipe display.
+        A beautifully plated dish of ${recipeJson.title.toLowerCase()}, showcasing ${recipeJson.description.split('.')[0].toLowerCase()}. 
+        The presentation is vibrant, appetizing, and professionally styled, with garnishes and a clean, modern background. 
+        Emphasize rich colors, fresh ingredients, and a delicious, inviting look. 
+        One high-quality image for a recipe display.
     `;
 
     const data = {
         inputs: prompt,
     };
 
-    try {
-        // Call Hugging Face Stable Diffusion API
-        const response = await axios.post(API_URL, data, { headers, responseType: 'arraybuffer' });
-        const imageBuffer = Buffer.from(response.data, 'binary');
+    // Try each accept type
+    for (let i = 0; i < retries; i++) {
+        const headers = {
+            Authorization: `Bearer ${process.env.HUGGINGFACE_TOKEN}`,
+            'Content-Type': 'application/json',
+            Accept: acceptTypes[i],
+        };
 
-        // Upload the buffer (assumes uploadFileBuffer is defined elsewhere)
-        const uploadResult = await uploadFileBuffer({
-            buffer: imageBuffer,
-            filename: `${recipeJson.title.replace(/\s+/g, '_').toLowerCase()}.png`,
-            folder: `${process.env.UPLOADS_FOLDER}/chat-recipes`,
-        });
+        try {
+            // Call Hugging Face Stable Diffusion API
+            const response = await axios.post(API_URL, data, {
+                headers,
+                responseType: 'arraybuffer',
+            });
 
-        return uploadResult.secure_url;
-    } catch (error) {
-        console.error('❌ Error generating image:', error.response?.data || error.message);
-        return null;
+            // Log response status for debugging
+            console.log('Hugging Face API response:', {
+                status: response.status,
+                contentType: response.headers['content-type'],
+            });
+
+            // The response.data is already a Buffer
+            const imageBuffer = response.data;
+
+            // Upload the buffer to UPLOADS_FOLDER/chat-recipes
+            const uploadResult = await uploadFileBuffer({
+                buffer: imageBuffer,
+                filename: `${recipeJson.title.replace(/\s+/g, '_').toLowerCase()}.${acceptTypes[i].split('/')[1]}`,
+                folder: `${process.env.UPLOADS_FOLDER}/chat-recipes`,
+            });
+
+            return uploadResult.secure_url;
+        } catch (error) {
+            console.error(`❌ Attempt ${i + 1} with Accept: ${acceptTypes[i]} failed:`, error.message);
+            lastError = error;
+
+            // Decode error response if it's in arraybuffer
+            if (error.response?.data instanceof Buffer) {
+                try {
+                    const errorMessage = JSON.parse(Buffer.from(error.response.data).toString('utf-8'));
+                    console.error('Hugging Face API error:', errorMessage);
+                } catch (parseError) {
+                    console.error('Failed to parse error response:', parseError.message);
+                }
+            }
+
+            // Continue to next retry if available
+            if (i === retries - 1) {
+                console.error('All retries failed.');
+            }
+        }
     }
+
+    // Return placeholder URL on failure
+    console.error('Final error:', lastError.message);
+    return 'https://via.placeholder.com/800x400?text=Recipe+Image';
 }
-
-
 
 
 
