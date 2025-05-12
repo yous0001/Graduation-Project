@@ -1,0 +1,112 @@
+import Coupon from './../../../DB/models/coupon.model.js';
+import { discountTypes } from './../../../utils/enums.js';
+
+export const calculateShippingFee = (itemCount) => {
+    // Check if itemCount is valid
+    if (itemCount <= 0) return 0;
+
+    const baseFee = 10; // Fee for the first item
+    const additionalItemFee = 5; // Fee per additional item
+    const discountPerItem = 0.5; // Discount per item for large orders
+    const maxDiscount = 0.3; // Maximum discount 
+
+    // Base fee for the first item
+    let shippingFee = baseFee;
+
+    // Additional items
+    if (itemCount > 1) {
+        const additionalItems = itemCount - 1;
+        let additionalFee = additionalItemFee * additionalItems;
+
+        // Apply discount based on number of items so that discount is increased with the number of items but it can not be more than 30% of the additional fee
+        const discount = Math.min(discountPerItem * additionalItems, maxDiscount * additionalFee);
+        additionalFee -= discount;
+
+        shippingFee += additionalFee;
+    }
+
+    // Round to nearest decimal
+    return Math.round(shippingFee);
+};
+
+
+
+export const applyCouponDiscount = async (couponCode, userId, total) => {
+    try {
+        if (!userId) {
+            const error = new Error("User ID is required");
+            error.statusCode = 400;
+            throw error;
+        }
+        if (typeof total !== "number" || total < 0) {
+            const error = new Error("Invalid order total");
+            error.statusCode = 400;
+            throw error;
+        }
+
+        // Find and update coupon atomically to prevent race conditions
+        const coupon = await Coupon.findOneAndUpdate(
+            {
+                code: couponCode,
+                expirationDate: { $gt: Date.now() },//expirationDate is greater than current date (coupon is not expired)
+                usedBy: { $nin: [userId] },//userId is not in usedBy array (he doesn't use it before)
+            },
+            { $push: { usedBy: userId } },//add userId to usedBy array
+            { new: true }
+        );
+
+        // Check if coupon exists and is valid to avoid making error very general
+        if (!coupon) {
+            const existingCoupon = await Coupon.findOne({ code: couponCode });
+            if (!existingCoupon) {
+                const error = new Error("Coupon not found");
+                error.statusCode = 404;
+                throw error;
+            }
+            if (existingCoupon.expirationDate < Date.now()) {
+                const error = new Error("Coupon is expired");
+                error.statusCode = 400;
+                throw error;
+            }
+            if (existingCoupon.usedBy.includes(userId)) {
+                const error = new Error("Coupon is used by you before");
+                error.statusCode = 400;
+                throw error;
+            }
+            // If we reach here, maxUsage must be the issue
+            if (existingCoupon.usedBy.length >= existingCoupon.maxUsage) {
+                const error = new Error("Coupon is used by max users");
+                error.statusCode = 400;
+                throw error;
+            }
+            // Fallback for unexpected cases
+            const error = new Error("Coupon is invalid");
+            error.statusCode = 400;
+            throw error;
+        }
+
+        // Apply discount
+        let updatedTotal = total;
+        if (coupon.discountType === discountTypes.PERCENTAGE) {
+            const discount = Math.min((total * coupon.amount) / 100, coupon.maxAmount);
+            updatedTotal -= discount;
+        } else if (coupon.discountType === discountTypes.FIXED) {
+            const discount = Math.min(coupon.amount, coupon.maxAmount);
+            updatedTotal -= discount;
+            updatedTotal = Math.max(updatedTotal, 0);
+        } else {
+            const error = new Error("Invalid discount type");
+            error.statusCode = 400;
+            throw error;
+        }
+
+        return {
+            updatedTotal: Math.round(updatedTotal),
+            couponId: coupon._id.toString(),
+        };
+    } catch (error) {
+        // Ensure error has statusCode
+        error.statusCode = error.statusCode || 500;
+        throw error;
+    }
+};

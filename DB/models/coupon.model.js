@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { discountTypes } from "../../SRC/utils/enums.utils.js";
 
 const { Schema, model } = mongoose;
 
