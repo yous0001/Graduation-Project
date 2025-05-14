@@ -25,3 +25,9 @@ export const orderStatuses = {
     refunded:"refunded",//order is refunded and payment has been refunded but with reason like order has problem or expired
     onway:"onway",//order is on way by delivery man
 };
+
+export const validGoals = {
+    weight_loss: "weight loss",
+    muscle_gain: "muscle gain",
+    maintenance: "maintenance",
+};

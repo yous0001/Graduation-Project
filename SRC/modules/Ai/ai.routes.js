@@ -8,6 +8,6 @@ const router=Router()
 router.post("/chat/ingredients",aiController.getRecommendation)
 router.post("/chat/legacy",aiController.getLegacyRecommendation)
 router.post("/chat/mood",aiController.getRecipeByMood)
-
+router.post("/diet-plan",auth(),aiController.getDietPlan)
 
 export default router 

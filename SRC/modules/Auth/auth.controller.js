@@ -16,7 +16,7 @@ export const register = async(req,res,next)=>{
         return res.status(400).json({message:"email already exists"});    
     }
     const hashedPassword=bcrypt.hashSync(password,+process.env.SALT_ROUNDS);
-    const usertoken=jwt.sign({email},process.env.JWT_SECRET_VERFICATION,{expiresIn:'1d'})
+    const usertoken=jwt.sign({email},process.env.JWT_SECRET_VERFICATION,{expiresIn:'1d'});
     
     const isEmailsent=await sendmailservice({
         to:email,
@@ -127,7 +127,7 @@ export const verifyLoginCode = async(req,res,next)=>{
     delete user.phoneNumbers
     delete user.addresses
 
-    const accessToken=jwt.sign({email:user.email,id:user._id},process.env.JWT_SECRET_LOGIN,{expiresIn:"1d"})
+    const accessToken=jwt.sign({email:user.email,id:user._id},process.env.JWT_SECRET_LOGIN,{expiresIn:process.env.ACCESS_TOKEN_EXPIRATION})
     const refreshToken=jwt.sign({id:user._id},process.env.JWT_SECRET_refresh,{expiresIn:"6d"})
 
     res.status(200).json({message:"login successful",accessToken:accessToken,refreshToken,...user})
@@ -151,7 +151,7 @@ export const refreshToken =async (req,res,next) => {
         return res.status(404).json({ message: "User not found" });
     }
 
-    const accessToken=jwt.sign({email:user.email,id:user._id},process.env.JWT_SECRET_LOGIN,{expiresIn:"1d"})
+    const accessToken=jwt.sign({email:user.email,id:user._id},process.env.JWT_SECRET_LOGIN,{expiresIn:process.env.ACCESS_TOKEN_EXPIRATION})
     refreshToken=jwt.sign({id:user._id},process.env.JWT_SECRET_refresh,{expiresIn:"6d"})
     
     res.status(200).json({message:"new token has been created",accessToken:accessToken,refreshToken:refreshToken})
