@@ -174,7 +174,6 @@ export async function generateDietPlanPdf(dietPlan, maxDays = 10, preferences = 
             currentY = checkPageBreak(textHeight + size + 20, currentY);
 
             // Render text
-            console.log('Text bounds:', { text: text.slice(0, 50), x, y: currentY, width: maxWidth, color });
             doc.fillColor(color).text(text, x, currentY, { align, width: maxWidth, lineBreak: true, lineGap: 3 });
             currentY += textHeight + size * 0.5;
 

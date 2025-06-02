@@ -1,5 +1,6 @@
 import mongoose from "mongoose"
-import { orderStatuses, paymentMethods } from "../../SRC/utils/enums.utils";
+import { orderStatuses, paymentMethods } from "../../SRC/utils/enums.utils.js";
+import Ingredient from './ingredient.model.js';
 
 const { Schema, model } = mongoose
 
@@ -27,11 +28,11 @@ const orderSchema = new mongoose.Schema({
             }
         }
     ],
-    subtotal: {
+    subTotal: {
         type: Number,
         required: true
     },
-    fromCart:{
+    fromCart: {
         type: Boolean,
         required: true,
         default: false
@@ -39,9 +40,9 @@ const orderSchema = new mongoose.Schema({
     vat: {
         type: Number,
         required: true,
-        min:0,
-        max:100,
-        default: 14 
+        min: 0,
+        max: 100,
+        default: 14
     },
     shippingFee: {
         type: Number,
@@ -56,7 +57,7 @@ const orderSchema = new mongoose.Schema({
     estimatedDeliveryDate: {
         type: Date,
         required: true,
-        default: Date.now+(3*60*60*1000)
+        default: Date.now() + (3 * 60 * 60 * 1000)
     },
     total: {
         type: Number,
@@ -80,8 +81,8 @@ const orderSchema = new mongoose.Schema({
         type: Schema.Types.ObjectId,
         ref: 'User'
     },
-    deliveredAt:Date,
-    cancelledAt:Date,
+    deliveredAt: Date,
+    cancelledAt: Date,
     cancelledReason: String,
     shippingAddress: {
         type: String,
@@ -97,5 +98,10 @@ const orderSchema = new mongoose.Schema({
     }
 });
 
+orderSchema.post('save', async function(){
+    for (let ingredient of this.items) {
+        const test=await Ingredient.updateOne({ _id: ingredient.ingredientId }, { $inc: { stock: -ingredient.quantity } })
+    }
+})
 const Order = mongoose.models.Order || model('Order', orderSchema)
 export default Order;

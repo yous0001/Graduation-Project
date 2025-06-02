@@ -10,6 +10,7 @@ import cartRouter from "./SRC/modules/Cart/cart.routes.js";
 import bannerRouter from "./SRC/modules/Banner/banners.routes.js";
 import reviewRouter from "./SRC/modules/Review/reviews.routes.js";
 import aiRouter from "./SRC/modules/Ai/ai.routes.js";
+import orderRouter from "./SRC/modules/Order/order.router.js"
 import { globalResponse } from './SRC/middlewares/globalResponce.js';
 import { cloudinaryConfig } from './SRC/utils/cloudinary.utils.js';
 import cors from 'cors';
@@ -33,6 +34,7 @@ app.use('/cart',cartRouter)
 app.use('/banner',bannerRouter)
 app.use('/review',reviewRouter)
 app.use('/ai',aiRouter)
+app.use('/order',orderRouter)
 
 app.use("*",(req,res,next)=>{
     res.status(404).json({success:false,message:"API endpoint not found"})

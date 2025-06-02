@@ -1,5 +1,6 @@
+import { discountTypes } from '../../utils/enums.utils.js';
 import Coupon from './../../../DB/models/coupon.model.js';
-import { discountTypes } from './../../../utils/enums.js';
+
 
 export const calculateShippingFee = (itemCount) => {
     // Check if itemCount is valid
