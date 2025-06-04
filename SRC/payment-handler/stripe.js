@@ -42,7 +42,7 @@ export const createStripeCoupon=async({couponId})=>{
     if(coupon.discountType===discountTypes.PERCENTAGE){
         couponObject={percent_off:coupon.discountValue}
     }else if(coupon.discountType===discountTypes.AMOUNT){
-        couponObject={amount_off:coupon.discountValue,currency:"EGP"}
+        couponObject={amount_off:coupon.discountValue*100,currency:"EGP"}
     }
     const stripeCoupon=await stripe.coupons.create(couponObject)
     return stripeCoupon
