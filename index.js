@@ -13,6 +13,7 @@ import aiRouter from "./SRC/modules/Ai/ai.routes.js";
 import orderRouter from "./SRC/modules/Order/order.router.js"
 import { globalResponse } from './SRC/middlewares/globalResponce.js';
 import { cloudinaryConfig } from './SRC/utils/cloudinary.utils.js';
+import recommendationRouter from './SRC/modules/Recommendations/recommendation.routes.js';
 import cors from 'cors';
 
 
@@ -23,7 +24,11 @@ if (process.env.NODE_ENV !== 'production') {
 const app = express();
 const port = process.env.PORT;
 
-app.use(cors());
+app.use(cors(
+    {
+        origin:'*'
+    }
+));
 app.use(express.json());
 app.use('/auth',authRouter)
 app.use('/category',categoryRouter)
@@ -34,6 +39,7 @@ app.use('/cart',cartRouter)
 app.use('/banner',bannerRouter)
 app.use('/review',reviewRouter)
 app.use('/ai',aiRouter)
+app.use('/recommendation',recommendationRouter)
 app.use('/order',orderRouter)
 
 app.use("*",(req,res,next)=>{
