@@ -1111,7 +1111,7 @@ export async function enhanceRecipesGemini(recommendations) {
 
           ## Ingredients
           - [Quantity] [ingredient] (e.g., 1 cup flour)
-          - [Include substitutes in parentheses if applicable]
+          - [Include substitutes in parentheses if applicable, e.g., (or substitute: 1 cup milk + 1 tbsp vinegar)]
 
           ## Instructions
           1. **[Action Verb]**: [Step description, concise and clear]

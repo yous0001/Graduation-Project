@@ -4,6 +4,9 @@ import { enhanceRecipesGemini, generateDietPlan, generateImage, generateImageFor
 import { generateDietPlanPdf } from "../Services/pdf.services.js";
 import { dietPlanEmailTemplate } from './../Services/emailTempletes.js';
 import sendmailservice from './../Services/sendMail.js';
+import Recommendation from "../../../DB/models/recommended.model.js";
+import slugify from "slugify";
+import chalk from "chalk";
 
 
 export const getRecommendation = async (req, res, next) => {
@@ -187,18 +190,94 @@ export const searchWithAi = async (req, res, next) => {
     try {
         const { ingredients, start, count } = req.body;
 
-        const {data: response} = await axios.post('http://127.0.0.1:5000/recommend', {
+        // Validate input
+        if (!ingredients) {
+            return res.status(400).json({ message: 'Ingredients is required' });
+        }
+
+        // Call Flask API to get initial recommendations
+        const { data: response } = await axios.post('http://127.0.0.1:5000/recommend', {
             ingredients,
             start,
             count
         });
-        const enhancedRecipes = await enhanceRecipesGemini(response.recommendations)
-        for (const recipe of enhancedRecipes) {
-            const image = await generateImageForGemini(recipe.recipeJson)
-            recipe.image = image
-        }
-        res.status(200).json({message: 'Recipe suggestion retrieved successfully', enhancedRecipes});
 
+        console.log('Response from Flask API fetchRecommendations:', response.recommendations);
+
+
+        let recommendations = response.recommendations || [];
+
+        recommendations = recommendations.map(r => ({
+        ...r,
+        title: slugify(r.title, { lower: true })
+        }));
+
+        const existingRecipes = await Recommendation.find({
+            originalTitle: { $in: recommendations.map(r => r.title) }
+        }).lean();
+
+
+        const existingRecipesFormatted = existingRecipes.map(recipe => ({
+            originalTitle: recipe.originalTitle,
+            recipeJson: recipe.recipeJson,
+            recipeMarkdown: recipe.recipeMarkdown,
+            image: { imageUrl: recipe.image.imageUrl },
+            category: recipe.category
+        }));
+
+
+        const existingTitles = new Set(existingRecipes.map(r => r.originalTitle));
+        const newRecommendations = recommendations.filter(r => !existingTitles.has(r.title));
+        console.log(chalk.bgGreen(`${existingTitles.size} recipes already exist.`));
+        console.log(chalk.bgYellow(`${newRecommendations.length} new recipes to be enhanced.`));
+
+        let enhancedRecipes = [];
+        if (newRecommendations.length > 0) {
+            enhancedRecipes = await enhanceRecipesGemini(newRecommendations);
+
+
+            for (const recipe of enhancedRecipes) {
+                try {
+                    let imageUrl = await generateImageForGemini(recipe.recipeJson);
+                    recipe.image = { imageUrl };
+
+
+                    const titleLower = recipe.originalTitle.toLowerCase();
+                    let category = 'Other';
+                    if (titleLower.includes('breakfast')) category = 'Breakfast';
+                    else if (titleLower.includes('dessert')) category = 'Dessert';
+                    else if (titleLower.includes('snack')) category = 'Snack';
+                    const recommendation = new Recommendation({
+                        originalTitle: recipe.originalTitle,
+                        recipeJson: recipe.recipeJson,
+                        recipeMarkdown: recipe.recipeMarkdown,
+                        image: recipe.image,
+                        originalIngredients: recommendations.find(r => r.title === recipe.originalTitle)?.ingredients || [],
+                        category
+                    });
+                    await recommendation.save();
+                } catch (error) {
+                    console.error(`Failed to generate image or save recipe ${recipe.originalTitle}:`, error.message);
+                    recipe.image = { imageUrl: 'https://via.placeholder.com/800x400?text=Recipe+Image' };
+                    const recommendation = new Recommendation({
+                        originalTitle: recipe.originalTitle,
+                        recipeJson: recipe.recipeJson,
+                        recipeMarkdown: recipe.recipeMarkdown,
+                        image: recipe.image,
+                        originalIngredients: recommendations.find(r => r.title === recipe.originalTitle)?.ingredients || [],
+                        category: 'Other'
+                    });
+                    await recommendation.save();
+                }
+            }
+        }
+
+        const allRecipes = [...existingRecipesFormatted, ...enhancedRecipes];
+
+        res.status(200).json({
+            message: 'Recipe suggestions retrieved successfully',
+            enhancedRecipes: allRecipes
+        });
     } catch (error) {
         console.error('Error in searchWithAi:', error.message);
         res.status(500).json({ message: 'Something went wrong', error: error.message });
