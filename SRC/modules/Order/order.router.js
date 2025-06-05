@@ -8,5 +8,6 @@ const router=Router()
 
 router.post("/cart",auth(),expressAsyncHandler(orderController.createOrderByCart))
 router.post("/stripe/:orderId",auth(),expressAsyncHandler(orderController.payWithStripe))
+router.post("/cart-overview",auth(),expressAsyncHandler(orderController.orderOverview))
 
 export default router

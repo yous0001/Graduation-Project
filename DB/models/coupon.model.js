@@ -33,6 +33,10 @@ const couponSchema = new mongoose.Schema({
         type: Date,
         required: true
     },
+    startsAt: {
+        type: Date,
+        required: true
+    },
     usageLimit: {
         type: Number,
         default: 1

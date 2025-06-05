@@ -34,6 +34,24 @@ export const calculateShippingFee = (itemCount) => {
 
 export const applyCouponDiscount = async (couponCode, userId, total) => {
     try {
+        const {updatedTotal,couponId} = await checkCouponDiscount(couponCode, userId, total);
+
+        await Coupon.findByIdAndUpdate(couponId,
+            { $push: { usedBy: userId } },
+            { new: true });
+        return {
+            updatedTotal,
+            couponId
+        };
+    } catch (error) {
+        // Ensure error has statusCode
+        error.statusCode = error.statusCode || 500;
+        throw error;
+    }
+};
+
+export const checkCouponDiscount = async()=>{
+    try {
         if (!userId) {
             const error = new Error("User ID is required");
             error.statusCode = 400;
@@ -46,14 +64,12 @@ export const applyCouponDiscount = async (couponCode, userId, total) => {
         }
 
         // Find and update coupon atomically to prevent race conditions
-        const coupon = await Coupon.findOneAndUpdate(
+        const coupon = await Coupon.findOne(
             {
                 code: couponCode,
                 expirationDate: { $gt: Date.now() },//expirationDate is greater than current date (coupon is not expired)
                 usedBy: { $nin: [userId] },//userId is not in usedBy array (he doesn't use it before)
-            },
-            { $push: { usedBy: userId } },//add userId to usedBy array
-            { new: true }
+            }
         );
 
         // Check if coupon exists and is valid to avoid making error very general
@@ -89,10 +105,10 @@ export const applyCouponDiscount = async (couponCode, userId, total) => {
         // Apply discount
         let updatedTotal = total;
         if (coupon.discountType === discountTypes.PERCENTAGE) {
-            const discount = Math.min((total * coupon.amount) / 100, coupon.maxAmount);
+            const discount = Math.min((total * coupon.discountValue) / 100, coupon.maxDiscountAmount);
             updatedTotal -= discount;
         } else if (coupon.discountType === discountTypes.FIXED) {
-            const discount = Math.min(coupon.amount, coupon.maxAmount);
+            const discount = Math.min(coupon.discountValue, coupon.maxDiscountAmount);
             updatedTotal -= discount;
             updatedTotal = Math.max(updatedTotal, 0);
         } else {
@@ -110,4 +126,4 @@ export const applyCouponDiscount = async (couponCode, userId, total) => {
         error.statusCode = error.statusCode || 500;
         throw error;
     }
-};
+}

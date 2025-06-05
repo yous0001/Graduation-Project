@@ -6,9 +6,10 @@ import { calculateShippingFee, applyCouponDiscount } from './../Services/order.s
 
 export const createOrderByCart = async (req, res, next) => {
     const userId = req.user._id;
-    const { shippingAddress, contactNumber, couponCode, paymentMethod, vat = 14 } = req.body;
+    const { shippingAddress, contactNumber, couponCode, paymentMethod } = req.body;
     let couponId = null;
 
+    const vat=14
     const cart = await Cart.findOne({ userID: userId }).populate('ingredients.IngredientID')
     if (!cart || cart.ingredients.length == 0) {
         return res.status(400).json({ message: "cart is empty" });
@@ -93,4 +94,38 @@ export const payWithStripe = async (req, res, next) => {
     
     const checkOutSession = await createCheckoutSession(paymentObject);
     return res.status(200).json({ checkOutSession })
+}
+
+export const orderOverview = async (req, res, next) => {
+    const userId = req.user._id;
+    const {  couponCode } = req.body;
+    let couponId = null;
+
+    const vat=14
+    const cart = await Cart.findOne({ userID: userId }).populate('ingredients.IngredientID')
+    if (!cart || cart.ingredients.length == 0) {
+        return res.status(400).json({ message: "cart is empty" });
+    }
+
+    const isNotAvaliable = cart.ingredients.find(ing => ing.IngredientID.stock < ing.quantity)
+    if (isNotAvaliable) {
+        return res.status(400).json({ message: `ingredient ${isNotAvaliable.IngredientID.name} is not available` });
+    }
+
+    const subTotal = cart.subTotal;
+    const shippingFee = calculateShippingFee(cart.ingredients.length);
+    const vatAmount=Math.ceil(subTotal*vat/100)
+    let total = subTotal + shippingFee + vatAmount
+
+    if (couponCode) {
+        const { updatedTotal, couponId: appliedCouponId } = await applyCouponDiscount(
+            couponCode,
+            userId,
+            total
+        );
+        total = updatedTotal;
+        couponId = appliedCouponId;
+    }
+
+    return res.status(200).json({ couponId, shippingFee, vatAmount, subTotal, total })
 }

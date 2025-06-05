@@ -9,5 +9,6 @@ router.post("/chat/ingredients",aiController.getRecommendation)
 router.post("/chat/legacy",aiController.getLegacyRecommendation)
 router.post("/chat/mood",aiController.getRecipeByMood)
 router.post("/diet-plan",auth(),aiController.getDietPlan)
+router.post("/serach-ai",aiController.searchWithAi)
 
 export default router 
