@@ -1093,7 +1093,7 @@ export async function enhanceRecipesGemini(recommendations) {
           - Rewrite the directions to be clear, concise, and detailed, with bold action verbs.
           - Suggest a cuisine type, difficulty level, and appropriate serving size.
           - Provide approximate nutritional information per serving.
-          - Format the enhanced recipe in markdown with the following structure:
+          - Format the enhanced recipe in markdown with exactly the following structure:
 
           # Recipe Title
 

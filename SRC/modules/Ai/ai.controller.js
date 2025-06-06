@@ -202,7 +202,7 @@ export const searchWithAi = async (req, res, next) => {
             count
         });
 
-        console.log('Response from Flask API fetchRecommendations:', response.recommendations);
+        //console.log('Response from Flask API fetchRecommendations:', response.recommendations);
 
 
         let recommendations = response.recommendations || [];
@@ -235,9 +235,11 @@ export const searchWithAi = async (req, res, next) => {
         if (newRecommendations.length > 0) {
             enhancedRecipes = await enhanceRecipesGemini(newRecommendations);
 
+            
 
             for (const recipe of enhancedRecipes) {
                 try {
+                    //console.log(recipe);
                     let imageUrl = await generateImageForGemini(recipe.recipeJson);
                     recipe.image = { imageUrl };
 
