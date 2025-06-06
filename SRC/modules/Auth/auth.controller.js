@@ -329,15 +329,13 @@ export const changePassword = async(req, res, next)=>{
 
 export const updateUser = async(req, res, next)=>{
     let user = req.user;
-    const {name,phoneNumbers,age,address}=req.body;
+    const {name,phoneNumbers,age}=req.body;
     if(name)
         user.username=name;
     if(phoneNumbers)
         user.phoneNumbers=phoneNumbers;
     if(age)
         user.age=age;
-    if(address)
-        user.addresses[0]=address;
     await user.save();
     user=user.toObject();
     delete user.profileImage?.public_id

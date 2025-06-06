@@ -6,7 +6,7 @@ import { calculateShippingFee, applyCouponDiscount } from './../Services/order.s
 
 export const createOrderByCart = async (req, res, next) => {
     const userId = req.user._id;
-    const { shippingAddress, contactNumber, couponCode, paymentMethod } = req.body;
+    const { shippingAddressID, contactNumber, couponCode, paymentMethod } = req.body;
     let couponId = null;
 
     const vat=14
@@ -19,6 +19,14 @@ export const createOrderByCart = async (req, res, next) => {
     if (isNotAvaliable) {
         return res.status(400).json({ message: `ingredient ${isNotAvaliable.IngredientID.name} is not available` });
     }
+
+    const isAddrecessExist = await Address.findById(shippingAddressID);
+    if (!isAddrecessExist) {
+        return res.status(400).json({ message: "shipping address not found" });
+    }
+    if(isAddrecessExist.userId.toString()!==userId.toString() ) 
+        return res.status(400).json({message:"this is not one of your addresses."});
+
     const subTotal = cart.subTotal;
     const shippingFee = calculateShippingFee(cart.ingredients.length);
     let total = subTotal + shippingFee + (subTotal * vat / 100)
@@ -39,7 +47,7 @@ export const createOrderByCart = async (req, res, next) => {
     }));
     const order = await Order.create({
         userId,
-        shippingAddress,
+        shippingAddressID,
         contactNumber,
         couponId,
         paymentMethod,
@@ -97,6 +105,7 @@ export const payWithStripe = async (req, res, next) => {
 }
 
 export const orderOverview = async (req, res, next) => {
+    const user = req.user;
     const userId = req.user._id;
     const {  couponCode } = req.body;
     let couponId = null;
@@ -127,5 +136,5 @@ export const orderOverview = async (req, res, next) => {
         couponId = appliedCouponId;
     }
 
-    return res.status(200).json({ couponId, shippingFee, vatAmount, subTotal, total })
+    return res.status(200).json({ couponId, shippingFee, vatAmount, subTotal, total , user })
 }

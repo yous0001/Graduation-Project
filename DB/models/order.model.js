@@ -84,8 +84,9 @@ const orderSchema = new mongoose.Schema({
     deliveredAt: Date,
     cancelledAt: Date,
     cancelledReason: String,
-    shippingAddress: {
-        type: String,
+    shippingAddressID: {
+        type: Schema.Types.ObjectId,
+        ref: 'Address',
         required: true
     },
     contactNumber: {
