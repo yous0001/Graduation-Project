@@ -1,8 +1,9 @@
+import Address from '../../../DB/models/address.model.js';
 import Cart from '../../../DB/models/cart.model.js';
 import Order from '../../../DB/models/order.model.js';
-import { createCheckoutSession } from '../../payment-handler/stripe.js';
+import { createCheckoutSession, createStripeCoupon } from '../../payment-handler/stripe.js';
 import { orderStatuses, paymentMethods } from '../../utils/enums.utils.js';
-import { calculateShippingFee, applyCouponDiscount } from './../Services/order.services.js';
+import { calculateShippingFee, applyCouponDiscount, checkCouponDiscount } from './../Services/order.services.js';
 
 export const createOrderByCart = async (req, res, next) => {
     const userId = req.user._id;
@@ -29,7 +30,9 @@ export const createOrderByCart = async (req, res, next) => {
 
     const subTotal = cart.subTotal;
     const shippingFee = calculateShippingFee(cart.ingredients.length);
-    let total = subTotal + shippingFee + (subTotal * vat / 100)
+
+    const vatAmount=Math.ceil(subTotal*vat/100)
+    let total = subTotal + shippingFee + vatAmount
 
     if (couponCode) {
         const { updatedTotal, couponId: appliedCouponId } = await applyCouponDiscount(
@@ -52,10 +55,11 @@ export const createOrderByCart = async (req, res, next) => {
         couponId,
         paymentMethod,
         shippingFee,
-        vat,
+        vat:vatAmount,
         subTotal,
         total,
-        items
+        items,
+        fromCart: true
     })
     await Cart.deleteOne({ userID: userId })
     return res.status(201).json({ message: "order created", order })
@@ -90,6 +94,26 @@ export const payWithStripe = async (req, res, next) => {
             quantity: item.quantity
         }))
     }
+    paymentObject.line_items.push({
+        price_data: {
+            currency: "EGP",
+            product_data: {
+                name: "shipping fee",
+            },
+            unit_amount: order.shippingFee * 100,
+        },
+        quantity: 1
+    })
+    paymentObject.line_items.push({
+        price_data: {
+            currency: "EGP",
+            product_data: {
+                name: "vat",
+            },
+            unit_amount: order.vat * 100,
+        },
+        quantity: 1
+    })
     if(order.couponId){
         const stripeCoupon=await createStripeCoupon({couponId:order.couponId})
         if(!stripeCoupon) 
@@ -99,7 +123,6 @@ export const payWithStripe = async (req, res, next) => {
             coupon:stripeCoupon.id
         })
     }
-    
     const checkOutSession = await createCheckoutSession(paymentObject);
     return res.status(200).json({ checkOutSession })
 }
@@ -109,7 +132,7 @@ export const orderOverview = async (req, res, next) => {
     const userId = req.user._id;
     const {  couponCode } = req.body;
     let couponId = null;
-
+    let coupondiscount=0
     const vat=14
     const cart = await Cart.findOne({ userID: userId }).populate('ingredients.IngredientID')
     if (!cart || cart.ingredients.length == 0) {
@@ -127,14 +150,15 @@ export const orderOverview = async (req, res, next) => {
     let total = subTotal + shippingFee + vatAmount
 
     if (couponCode) {
-        const { updatedTotal, couponId: appliedCouponId } = await applyCouponDiscount(
+        const { updatedTotal, couponId: appliedCouponId,discount } = await checkCouponDiscount(
             couponCode,
             userId,
             total
         );
         total = updatedTotal;
         couponId = appliedCouponId;
+        coupondiscount=discount
     }
 
-    return res.status(200).json({ couponId, shippingFee, vatAmount, subTotal, total , user })
+    return res.status(200).json({ couponId, shippingFee, vatAmount,coupondiscount, subTotal, total , addresses: user.addresses })
 }

@@ -1,4 +1,5 @@
 import Coupon from "../../../DB/models/coupon.model.js";
+import { discountTypes } from "../../utils/enums.utils.js";
 
 
 
@@ -6,6 +7,9 @@ import Coupon from "../../../DB/models/coupon.model.js";
 export const addCoupon = async (req, res, next) => {
     const { code, discountType, discountValue, maxDiscountAmount, startsAt, expiresAt, usageLimit = 10 } = req.body;
     const userId = req.user._id;
+
+    if (!code || !discountType || !discountValue || !maxDiscountAmount || !startsAt || !expiresAt)
+        return res.status(400).json({ success: false, message: "Please provide all the required fields" });
 
     const isCouponExists = await Coupon.findOne({ code });
     if (isCouponExists) {
@@ -16,6 +20,9 @@ export const addCoupon = async (req, res, next) => {
 
     if (maxDiscountAmount > 500)
         return res.status(409).json({ success: false, message: "max discount amount can't be more than 500 EGP. we want to make profit not lose. are you crasy????????" })
+
+    if(!Object.values(discountTypes).includes(discountType))
+        return res.status(409).json({ success: false, message: "discount type is not valid" })
 
     if (discountType === "percentage" && discountValue > 100)
         return res.status(409).json({ success: false, message: "discount can't be more than 100%" })

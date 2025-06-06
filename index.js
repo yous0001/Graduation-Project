@@ -15,6 +15,7 @@ import { globalResponse } from './SRC/middlewares/globalResponce.js';
 import { cloudinaryConfig } from './SRC/utils/cloudinary.utils.js';
 import recommendationRouter from './SRC/modules/Recommendations/recommendation.routes.js';
 import addressRouter from './SRC/modules/Address/address.routes.js';
+import couponRouter from './SRC/modules/Coupon/coupon.routes.js';
 import cors from 'cors';
 
 
@@ -43,6 +44,7 @@ app.use('/ai',aiRouter)
 app.use('/recommendation',recommendationRouter)
 app.use('/order',orderRouter)
 app.use('/address',addressRouter)
+app.use('/coupon',couponRouter)
 
 app.use("*",(req,res,next)=>{
     res.status(404).json({success:false,message:"API endpoint not found"})

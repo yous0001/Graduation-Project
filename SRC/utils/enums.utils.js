@@ -4,8 +4,8 @@ export const Badges = {
     best_recipe: "best recipe",
 };
 export const discountTypes={
-    percentage: "Percentage",
-    fixed: "Fixed",
+    percentage: "percentage",
+    fixed: "fixed",
 }
 
 export const paymentMethods = {
