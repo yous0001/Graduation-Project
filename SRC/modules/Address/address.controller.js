@@ -23,7 +23,7 @@ export const addAddress=async(req,res,next)=>{
     const newAddress=await Address.create(addressObject)
     await User.findByIdAndUpdate(user._id, { $push: { addresses: newAddress._id } });
     
-    res.status(200).json({message:"address added successfully",newAddress})
+    res.status(200).json({message:"address added successfully",address:newAddress});
 } 
 
 export const getAddresses=async(req,res,next)=>{
@@ -63,7 +63,7 @@ export const updateAddress=async(req,res,next)=>{
         return res.status(400).json({message:"Please provide at least one field to update"});
 
     const updatedAddress=await Address.findByIdAndUpdate(addressId,addressObject,{new:true});
-    res.status(200).json({message:"address updated successfully",updatedAddress});
+    res.status(200).json({message:"address updated successfully",address:updatedAddress});
 }
 
 export const deleteAddress=async(req,res,next)=>{
