@@ -162,3 +162,15 @@ export const orderOverview = async (req, res, next) => {
 
     return res.status(200).json({ couponId, shippingFee, vatAmount,coupondiscount, subTotal, total , addresses: user.addresses })
 }
+
+export const checkCouponCode = async (req,res,next) => {
+    const {  couponCode, total } = req.body;
+    const userId = req.user._id;
+    const { updatedTotal, couponId: appliedCouponId,discount } = await checkCouponDiscount(
+            couponCode,
+            userId,
+            total
+        );
+
+    return res.status(200).json({ totalAfterDiscount: updatedTotal, couponId: appliedCouponId,discount })
+}
