@@ -21,7 +21,7 @@ export const register = async(req,res,next)=>{
     const isEmailsent=await sendmailservice({
         to:email,
         subject:"please verify your email",
-        message:verificationEmailTemplate.replace("{{url}}",`${req.protocol}://${req.headers.host}/auth/verify-email?token=${usertoken}`),
+        message:verificationEmailTemplate.replace("{{url}}",`${process.env.CLIENT_URL}/auth/verify-email/${usertoken}`),
         attachments:[]
     })
 
