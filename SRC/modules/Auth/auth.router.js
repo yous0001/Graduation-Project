@@ -13,8 +13,8 @@ router.post("/register", validationMiddleware(authSchemaes.registerSchema),expre
 router.get("/verify-email", validationMiddleware(authSchemaes.verifyEmailSchema),expressAsyncHandler(authController.verifyEmail))
 router.post("/login",validationMiddleware(authSchemaes.loginSchema), expressAsyncHandler(authController.login))
 router.get("/refresh-token", expressAsyncHandler(authController.refreshToken))
-router.get("/resend-otp",expressAsyncHandler(authController.resendOtp))
-router.get("/verify-login",validationMiddleware(authSchemaes.verifyLoginSchema),expressAsyncHandler(authController.verifyLoginCode))
+router.post("/resend-otp",expressAsyncHandler(authController.resendOtp))
+router.post("/verify-login",validationMiddleware(authSchemaes.verifyLoginSchema),expressAsyncHandler(authController.verifyLoginCode))
 router.get("/get-profile",auth(),expressAsyncHandler(authController.getProfile))
 router.delete("/delete-user",auth(),expressAsyncHandler(authController.deleteUser))
 router.delete("/delete-profileImg",auth(),expressAsyncHandler(authController.deleteProfileImg))
@@ -23,8 +23,8 @@ router.put("/change-password",auth(),validationMiddleware(authSchemaes.changePas
 router.put("/update-user",auth(),validationMiddleware(authSchemaes.updateUserSchema),expressAsyncHandler(authController.updateUser))
 
 
-router.get("/forget-password", validationMiddleware(authSchemaes.forgetPasswordSchema),expressAsyncHandler(authController.forgetPassword))
-router.get("/reset-password/:token",validationMiddleware(authSchemaes.resetPasswordSchema), expressAsyncHandler(authController.resetPassword))
+router.post("/forget-password", validationMiddleware(authSchemaes.forgetPasswordSchema),expressAsyncHandler(authController.forgetPassword))
+router.post("/reset-password/:token",validationMiddleware(authSchemaes.resetPasswordSchema), expressAsyncHandler(authController.resetPassword))
 
 router.post("/toogle-favourite/:recipeID",auth(),validationMiddleware(authSchemaes.toggleFavouriteSchema),expressAsyncHandler(authController.toogleFavourite))
 router.get("/get-favourite",auth(),expressAsyncHandler(authController.getFavouriteRecipes))
