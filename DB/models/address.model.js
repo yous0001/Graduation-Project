@@ -19,6 +19,11 @@ const addressSchema = new mongoose.Schema({
         required: true,
         trim: true
     },
+    streetName:{
+        type: String,
+        required: true,
+        trim: true
+    },
     postalCode: {
         type:Number,
         required: true

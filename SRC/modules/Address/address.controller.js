@@ -4,9 +4,9 @@ import User from "../../../DB/models/user.model.js";
 
 export const addAddress=async(req,res,next)=>{
     const user = req.user;
-    const {country,city,postalCode,buildingNumber,floorNumber,addressLabel,notes}=req.body;
+    const {country,city,postalCode,buildingNumber,floorNumber,addressLabel,streetName,notes}=req.body;
     
-    if(!country||!city||!postalCode||!buildingNumber||!floorNumber) 
+    if(!country||!city||!postalCode||!buildingNumber||!floorNumber||!streetName) 
         return res.status(400).json({message:"Please provide all the required fields"});
     
     const addressObject={
@@ -16,6 +16,7 @@ export const addAddress=async(req,res,next)=>{
         buildingNumber,
         floorNumber,
         addressLabel,
+        streetName,
         notes,
         userId:user._id
     }
@@ -35,7 +36,7 @@ export const getAddresses=async(req,res,next)=>{
 export const updateAddress=async(req,res,next)=>{
     const user = req.user;
     const {addressId}=req.params;
-    const {country,city,postalCode,buildingNumber,floorNumber,addressLabel,notes}=req.body;
+    const {country,city,postalCode,buildingNumber,floorNumber,addressLabel,notes,streetName}=req.body;
     
     if(!addressId) 
         return res.status(400).json({message:"Please provide the address id"});
@@ -58,7 +59,8 @@ export const updateAddress=async(req,res,next)=>{
     if(floorNumber) addressObject.floorNumber=floorNumber;
     if(addressLabel) addressObject.addressLabel=addressLabel;
     if(notes) addressObject.notes=notes;
-
+    if(streetName) addressObject.streetName=streetName;
+    
     if(Object.keys(addressObject).length===0) 
         return res.status(400).json({message:"Please provide at least one field to update"});
 
