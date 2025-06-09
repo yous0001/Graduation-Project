@@ -178,7 +178,7 @@ export const forgetPassword=async(req,res,next)=>{
         await sendmailservice({
             to:user.email,
             subject:'reset password',
-            message:forgetPasswordRequestEmailTemplete.replace(`{{reset_link}}`,`${req.protocol}://${req.headers.host}/auth/reset-password/${resetToken}`),
+            message:forgetPasswordRequestEmailTemplete.replace(`{{reset_link}}`,`${process.env.CLIENT_URL}/auth/reset-password/${resetToken}`),
             attachments:[]
             })
             return res.status(200).json({success:true,message:"reset password link sent successfully"})
