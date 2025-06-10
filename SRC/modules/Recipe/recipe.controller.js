@@ -270,5 +270,5 @@ export const viewRecipe=async(req,res,next)=>{
     const {recipeID}=req.params
     const recipe=await Recipe.findByIdAndUpdate(recipeID, { $inc: { views: 1 } }, { new: true });
     if(!recipe) return next(new Error('Recipe not found',{cause:404}))
-    res.status(200).json({message:"Recipe viewed successfully"})
+    res.status(200).json({message:"Recipe viewed successfully",recipe})
 }
