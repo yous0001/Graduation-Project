@@ -32,4 +32,7 @@ expressAsyncHandler(receipeController.getRecipes))
 router.get("/view/:recipeID",
 expressAsyncHandler(receipeController.viewRecipe))
 
+router.get("/get",
+expressAsyncHandler(receipeController.getSpecificRecipe))
+
 export default router;
