@@ -238,3 +238,21 @@ res.status(200).json({
     ingredients
 });
 }
+
+export const getSpecificIngredient=async(req,res,next)=>{
+    const {name,slug}=req.query;
+
+    const SearchQuery={};
+    if(name)SearchQuery.name=name;
+    if(slug)SearchQuery.slug=slug;
+    const ingredient=await Ingredient.findOne(SearchQuery).populate(
+        [{
+            path:"createdBy",
+            select:"username profileImage.secure_url -_id"
+        }]
+    );
+
+    if(!ingredient) return next(new Error("Ingredient not found", {cause:404}));
+
+    res.status(200).json({success:true,ingredient});
+}
