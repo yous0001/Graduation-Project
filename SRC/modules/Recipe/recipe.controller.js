@@ -280,7 +280,25 @@ export const getSpecificRecipe=async(req,res,next)=>{
     if(name) searchObj.name=name
     if(slug) searchObj.slug=slug
 
-    const recipe=await Recipe.findOneAndUpdate(searchObj, { $inc: { views: 1 } }, { new: true });
+    const recipe=await Recipe.findOneAndUpdate(searchObj, { $inc: { views: 1 } }, { new: true })
+            .populate(
+                [{
+                    path:"country",
+                    select:"name"
+                },
+                {
+                    path:"category",
+                    select:"name"
+                },
+                {
+                    path:"ingredients.ingredient",
+                    select:"name image.secure_url _id basePrice appliedPrice stock Average_rating discount"
+                },
+            {
+                path:"createdBy",
+                select:"username profileImage.secure_url -_id"
+            }]
+            );
     if(!recipe) return next(new Error('Recipe not found',{cause:404}))
     res.status(200).json({message:"Recipe found successfully",recipe})
 }
