@@ -9,8 +9,8 @@ export const getRecommendations=async(req,res)=>{
 }
 
 export const getSpecificRecommendation=async(req,res)=>{
-    const {id}=req.params;
-    const recommendation=await Recommendation.findById(id)
+    const {name}=req.params;
+    const recommendation=await Recommendation.findOne({originalTitle:name})
     res.status(200).json({
         success:true,
         recommendation
