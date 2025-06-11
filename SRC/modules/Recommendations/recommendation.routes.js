@@ -6,5 +6,5 @@ import * as recommendationController from "./recommendation.controller.js"
 const router=Router()
 
 router.get("/",recommendationController.getRecommendations)
-
+router.get("/:id",recommendationController.getSpecificRecommendation)
 export default router
