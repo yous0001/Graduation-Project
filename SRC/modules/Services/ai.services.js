@@ -401,7 +401,7 @@ export async function generateImageForGemini(recipeJson, retries = 2) {
 
     // Return placeholder URL on failure
     console.error('Final error:', lastError?.message || 'Unknown error');
-    return 'https://via.placeholder.com/800x400?text=Recipe+Image';
+    return 'https://res.cloudinary.com/dfdmgqhwa/image/upload/v1750061556/recipesSystem/photo_2025-06-06_10-19-34_szrjgs.jpg';
 }
 
 // ================================================= GENERATE RECIPE BY MOOD ================================
