@@ -177,6 +177,20 @@ export const checkCouponCode = async (req,res,next) => {
 
 export const cancelOrder=async(req,res,next)=>{
     const {id}=req.params
-    const order=await Order.findOneAndUpdate({_id:id},{orderStatus:orderStatuses.canceled},{new:true})
+    const order=await Order.findOneAndUpdate({_id:id},{orderStatus:orderStatuses.cancelled},{new:true})
+    if(!order) return next(new Error("order not found", { cause: 404 }))
     return res.status(200).json({message:"order canceled",order})
+}
+
+export const getOrders=async(req,res,next)=>{
+    const user=req.user
+    const orders=await Order.find({userId:user._id}).populate('items.ingredientId')
+    return res.status(200).json({orders})
+}
+
+export const getSpecificOrder=async(req,res,next)=>{
+    const {id}=req.params
+    const order=await Order.findOne({_id:id}).populate('items.ingredientId')
+    if(!order) return next(new Error("order not found", { cause: 404 }))
+    return res.status(200).json({order})
 }
