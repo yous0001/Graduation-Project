@@ -71,9 +71,9 @@ export const payWithStripe = async (req, res, next) => {
 
     const order = await Order.findOne({ _id: orderId, userId:user._id }).populate('items.ingredientId')
     if (!order) return next(new Error("you don't have this order", { cause: 404 }))
+    if(order.paymentMethod==orderStatuses.cancelled) return next(new Error("order have been canceled", { cause: 400 }))
     if (order.orderStatus != orderStatuses.pending) return next(new Error("order is not pending to be paid or have already been paid", { cause: 400 }))
     if (order.paymentMethod == paymentMethods.cash) return next(new Error("order is checked to be paid with cash", { cause: 400 }))
-
     const paymentObject = {
         customer_email: user.email,
         customer_data:{
@@ -173,4 +173,10 @@ export const checkCouponCode = async (req,res,next) => {
         );
 
     return res.status(200).json({ totalAfterDiscount: updatedTotal, couponId: appliedCouponId,discount })
+}
+
+export const cancelOrder=async(req,res,next)=>{
+    const {orderId}=req.params
+    const order=await Order.findOneAndUpdate({_id:orderId},{orderStatus:orderStatuses.canceled},{new:true})
+    return res.status(200).json({message:"order canceled",order})
 }

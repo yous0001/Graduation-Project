@@ -10,5 +10,5 @@ router.post("/cart",auth(),expressAsyncHandler(orderController.createOrderByCart
 router.post("/stripe/:orderId",auth(),expressAsyncHandler(orderController.payWithStripe))
 router.post("/cart-overview",auth(),expressAsyncHandler(orderController.orderOverview))
 router.post("/check-coupon",auth(),expressAsyncHandler(orderController.checkCouponCode))
-
+router.put("/cancel/:id",auth(),expressAsyncHandler(orderController.cancelOrder))
 export default router
