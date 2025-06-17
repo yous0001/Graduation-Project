@@ -192,5 +192,6 @@ export const getSpecificOrder=async(req,res,next)=>{
     const {id}=req.params
     const order=await Order.findOne({_id:id}).populate('items.ingredientId')
     if(!order) return next(new Error("order not found", { cause: 404 }))
+    if(order.userId.toString()!==req.user._id.toString()) return next(new Error("this is not one of your orders", { cause: 400 }))
     return res.status(200).json({order})
 }

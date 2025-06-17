@@ -285,7 +285,7 @@ export async function parseMarkdownToJson(markdownText) {
 
 
 export async function generateImageForGemini(recipeJson, retries = 2) {
-    const API_URL = 'https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0';
+    const API_URL = 'https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-dev';
     const acceptTypes = ['image/png', 'image/jpeg'];
     // Array of API keys from HUGGINGFACE_TOKEN1 to HUGGINGFACE_TOKEN10
     const apiKeys = Array.from({ length: 10 }, (_, i) => process.env[`HUGGINGFACE_TOKEN${i + 1}`]).filter(Boolean);
