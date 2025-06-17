@@ -15,7 +15,7 @@ export const registerSchema = {
             "string.email": "Please provide a valid email address.",
             "any.required": "Email is required.",
         }),
-        password: Joi.string().min(8).regex(passwordRegex).required().messages({
+        password: Joi.string().min(6).required().messages({
             "string.pattern.base":
                 "Password must be at least 8 characters long, include at least one uppercase letter, one lowercase letter, one number, and one special character.",
             "string.min": "Password must be at least 8 characters long.",
