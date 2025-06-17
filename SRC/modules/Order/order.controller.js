@@ -176,7 +176,7 @@ export const checkCouponCode = async (req,res,next) => {
 }
 
 export const cancelOrder=async(req,res,next)=>{
-    const {orderId}=req.params
-    const order=await Order.findOneAndUpdate({_id:orderId},{orderStatus:orderStatuses.canceled},{new:true})
+    const {id}=req.params
+    const order=await Order.findOneAndUpdate({_id:id},{orderStatus:orderStatus.canceled},{new:true})
     return res.status(200).json({message:"order canceled",order})
 }
