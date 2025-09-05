@@ -255,6 +255,8 @@ export const getRecipes=async(req,res,next)=>{
             .paginate();
 
         const recipes = await apiFeatures.execute();
+        if(!user) return res.status(200).json({success:true,recipes})
+        
         for (let i = 0; i < recipes.docs.length; i++) {
             let recipeObj = recipes.docs[i].toObject(); 
             recipeObj.isFavourite = user.favoriteRecipes.includes(recipeObj._id.toString());

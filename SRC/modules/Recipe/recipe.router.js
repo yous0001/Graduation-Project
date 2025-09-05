@@ -26,7 +26,7 @@ router.put("/:recipeID",auth([systemRoles.ADMIN]),
     expressAsyncHandler(receipeController.updateRecipe))
 
     
-router.get("/list",auth(),
+router.get("/list",auth([systemRoles.ADMIN,systemRoles.USER,systemRoles.DELIVERY],true),
 expressAsyncHandler(receipeController.getRecipes))
 
 router.get("/view/:recipeID",

@@ -3,13 +3,17 @@ import User  from "../../DB/models/user.model.js";
 import { systemRoles } from "../../SRC/utils/system-roles.js";
 
 
-export const auth = (accessRoles = [systemRoles.USER, systemRoles.ADMIN, systemRoles.DELIVERY]) => {
+export const auth = (accessRoles = [systemRoles.USER, systemRoles.ADMIN, systemRoles.DELIVERY],isOptional=false) => {
     return async (req, res, next) => {
         try {
             
             const accessToken = req.headers.accesstoken;
 
             if (!accessToken) {
+                if (isOptional) {
+                    next();
+                    return;
+                }   
                 return res.status(401).json({ message: "Please login first" });
             }
 
