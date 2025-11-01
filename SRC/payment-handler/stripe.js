@@ -1,6 +1,7 @@
 import Stripe from "stripe"
 import Coupon from "../../DB/models/coupon.model.js";
 import { discountTypes } from "../utils/enums.utils.js";
+import paymentConfig from "../modules/Order/options/payment.config.js";
 
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
 const stripe = STRIPE_SECRET_KEY ? new Stripe(STRIPE_SECRET_KEY) : null;
@@ -27,8 +28,8 @@ export const createCheckoutSession=async({
         mode: 'payment',
         customer: customer.id,
         metadata,
-        success_url: process.env.SUCCESS_URL,
-        cancel_url: process.env.CANCEL_URL,
+        success_url: paymentConfig.stripe.successUrl,
+        cancel_url: paymentConfig.stripe.cancelUrl,
         discounts,
         line_items
     })
@@ -50,7 +51,7 @@ export const createStripeCoupon=async({couponId})=>{
     if(coupon.discountType===discountTypes.percentage){
         couponObject={name:coupon.code,percent_off:coupon.discountValue}
     }else if(coupon.discountType===discountTypes.fixed){
-        couponObject={name:coupon.code,amount_off:coupon.discountValue*100,currency:"EGP"}
+        couponObject={name:coupon.code,amount_off:coupon.discountValue*paymentConfig.stripe.multiplier,currency:paymentConfig.stripe.currency}
     }
     const stripeCoupon=await stripe.coupons.create(couponObject)
     return stripeCoupon

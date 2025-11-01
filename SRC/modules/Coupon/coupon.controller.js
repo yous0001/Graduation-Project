@@ -1,11 +1,12 @@
 import Coupon from "../../../DB/models/coupon.model.js";
 import { discountTypes } from "../../utils/enums.utils.js";
+import defaultsConfig from '../Services/options/defaults.config.js';
 
 
 
 
 export const addCoupon = async (req, res, next) => {
-    const { code, discountType, discountValue, maxDiscountAmount, startsAt, expiresAt, usageLimit = 10 } = req.body;
+    const { code, discountType, discountValue, maxDiscountAmount, startsAt, expiresAt, usageLimit = defaultsConfig.coupon.defaultUsageLimit } = req.body;
     const userId = req.user._id;
 
     if (!code || !discountType || !discountValue || !maxDiscountAmount || !startsAt || !expiresAt)
@@ -59,4 +60,4 @@ export const addCoupon = async (req, res, next) => {
     const newCoupon = await Coupon.create(couponObject);
 
     res.status(201).json({ success: true, message: "Coupon added successfully", coupon: newCoupon });
-} 
+}

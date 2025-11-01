@@ -1,5 +1,6 @@
 import axios from "axios";
 import Country from "../../../DB/models/country.model.js";
+import apiConfig from '../Services/options/api.config.js';
 
 export const addCountry = async (req, res, next) => {
     const { name } = req.body;
@@ -24,7 +25,7 @@ export const getAllCountries = async (req, res, next) => {
 
 export const addMealDBCountries = async (req, res, next) => {
     const user = req.user;
-    const response = await axios.get("https://www.themealdb.com/api/json/v1/1/list.php?a=list");
+    const response = await axios.get(`${apiConfig.mealDB.baseUrl}${apiConfig.mealDB.endpoints.areasList}`);
     const insertedCountries = [];
     
     for (const country of response.data.meals) {

@@ -7,6 +7,7 @@ import { ApiFeatures } from '../../utils/api-features.js';
 import chalk from "chalk";
 import { discountTypes } from '../../utils/enums.utils.js';
 import Cart from '../../../DB/models/cart.model.js';
+import apiConfig from '../Services/options/api.config.js';
 
 export const addIngredient = async (req, res, next) => {
     const user = req.user;
@@ -127,7 +128,7 @@ export const addMealDBIngredients = async (req, res, next) => {
         try {
         console.log(chalk.cyan("Fetching ingredients from MealDB API..."));
 
-        const { data: { meals: ingredients } } = await axios.get("https://www.themealdb.com/api/json/v1/1/list.php?i=list");
+        const { data: { meals: ingredients } } = await axios.get(`${apiConfig.mealDB.baseUrl}${apiConfig.mealDB.endpoints.ingredientsList}`);
     
         if (!ingredients?.length) {
             console.log(chalk.yellow("No ingredients found from the API."));
@@ -145,7 +146,7 @@ export const addMealDBIngredients = async (req, res, next) => {
                 continue;
             }
 
-            const ingredientImageUrl = `https://www.themealdb.com/images/ingredients/${encodeURIComponent(strIngredient)}.png`;
+            const ingredientImageUrl = `${apiConfig.mealDB.imageBaseUrl}/${encodeURIComponent(strIngredient)}.png`;
     
             const verifyImageResponse = await axios.get(ingredientImageUrl).catch(() => null);
             if (!verifyImageResponse || verifyImageResponse.status !== 200) {

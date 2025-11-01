@@ -4,6 +4,8 @@ import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from '@google/ge
 import { marked } from 'marked';
 import { parse } from 'node-html-parser';
 import { validGoals } from '../../utils/enums.utils.js';
+import aiConfig from '../Ai/options/ai.config.js';
+import validationConfig from './options/validation.config.js';
 
 // Initialize the Gemini API client
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
@@ -19,7 +21,7 @@ export async function generateRecipeM1(ingredients) {
   try {
     ingredients = `Ingredients: ${ingredients} you can add more ingredients if needed. Give me a full recipe with steps and ingredients.`
     const response = await axios.post(
-      "https://api-inference.huggingface.co/models/flax-community/t5-recipe-generation",
+      aiConfig.endpoints.huggingFace.recipeGeneration,
       {
         inputs: ingredients + "note: give me most similar recipe without error please",
         parameters: {
@@ -45,7 +47,7 @@ export async function generateRecipeM1(ingredients) {
 export async function generateRecipeM2(ingredients) {
   try {
     const response = await axios.post(
-      "https://api-inference.huggingface.co/models/Ashikan/dut-recipe-generator",
+      aiConfig.endpoints.huggingFace.dutRecipeGenerator,
       {
         inputs: `Ingredients: ${ingredients}. Generate a healthy recipe.`,
       },
@@ -78,7 +80,7 @@ export async function generateRecipeM3(ingredients) {
         `;
 
     const response = await axios.post(
-      "https://api-inference.huggingface.co/models/gpt2",
+      aiConfig.endpoints.huggingFace.gpt2,
       { inputs: prompt },
       {
         headers: {
@@ -100,7 +102,7 @@ export async function generateRecipeM3(ingredients) {
 export async function generateRecipeImage(recipeDescription) {
   try {
     const response = await axios.post(
-      "https://api.openai.com/v1/images/generations",
+      aiConfig.endpoints.openai.imageGeneration,
       {
         prompt: recipeDescription,
         n: 1,
@@ -125,7 +127,7 @@ export async function generateRecipeImage(recipeDescription) {
 }
 
 export async function generateImage(prompt) {
-  const API_URL = 'https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0';
+  const API_URL = aiConfig.endpoints.huggingFace.stableDiffusion;
   const headers = {
     'Authorization': `Bearer ${process.env.HUGGINGFACE_TOKEN2}`,
     'Content-Type': 'application/json'
@@ -150,7 +152,7 @@ export async function generateImage(prompt) {
     return uploadResult.secure_url;
   } catch (error) {
     console.error('❌ Error:', error.response?.data || error.message);
-    return null;
+    return aiConfig.defaults.placeholderImage;
   }
 }
 
@@ -285,16 +287,16 @@ export async function parseMarkdownToJson(markdownText) {
 
 
 export async function generateImageForGemini(recipeJson, retries = 2) {
-    const API_URL = 'https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-dev';
+    const API_URL = aiConfig.endpoints.huggingFace.flux;
     const acceptTypes = ['image/png', 'image/jpeg'];
     // Array of API keys from HUGGINGFACE_TOKEN1 to HUGGINGFACE_TOKEN10
-    const apiKeys = Array.from({ length: 10 }, (_, i) => process.env[`HUGGINGFACE_TOKEN${i + 1}`]).filter(Boolean);
+    const apiKeys = Array.from({ length: aiConfig.limits.maxHuggingFaceKeys }, (_, i) => process.env[`HUGGINGFACE_TOKEN${i + 1}`]).filter(Boolean);
     let lastError = null;
 
     // Validate that at least one API key is available
     if (apiKeys.length === 0) {
         console.error('No Hugging Face API keys found in environment variables.');
-        return 'https://via.placeholder.com/800x400?text=Recipe+Image';
+        return aiConfig.defaults.placeholderImage;
     }
 
     // Log input for debugging
@@ -401,7 +403,7 @@ export async function generateImageForGemini(recipeJson, retries = 2) {
 
     // Return placeholder URL on failure
     console.error('Final error:', lastError?.message || 'Unknown error');
-    return 'https://res.cloudinary.com/dfdmgqhwa/image/upload/v1750061556/recipesSystem/photo_2025-06-06_10-19-34_szrjgs.jpg';
+    return aiConfig.defaults.placeholderImage;
 }
 
 // ================================================= GENERATE RECIPE BY MOOD ================================
@@ -788,7 +790,7 @@ export async function generateDietPlan({ height, age, weight, fatPercentage, goa
   };
 
   // Initialize API keys
-  const maxKeys = 5; // Limit to GEMINI_API_KEY1 through GEMINI_API_KEY5
+  const maxKeys = aiConfig.limits.maxGeminiKeys; // Limit to GEMINI_API_KEY1 through GEMINI_API_KEY5
   let currentKeyIndex = 1;
   let apiKey = process.env[`GEMINI_API_KEY${currentKeyIndex}`];
 
@@ -943,7 +945,7 @@ export async function generateDietPlan({ height, age, weight, fatPercentage, goa
 
         // Validate instructions (7–10 steps)
         Object.entries(parsedPlan.days[0].meals).forEach(([mealType, recipe]) => {
-          if (recipe.instructions.length < 7) {
+          if (recipe.instructions.length < validationConfig.arrays.recipeInstructions.min) {
             console.warn(`Warning: ${mealType} for Day ${day} has only ${recipe.instructions.length} instructions`);
           }
         });

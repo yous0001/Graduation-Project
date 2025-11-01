@@ -33,6 +33,8 @@
 //     }
 // }
 
+import apiConfig from '../modules/Services/options/api.config.js';
+
 export class ApiFeatures {
     constructor(mongooseQuery, queryString) {
         this.mongooseQuery = mongooseQuery;
@@ -40,11 +42,16 @@ export class ApiFeatures {
         this.queryFilters = {};
         this.options = {
             page: parseInt(queryString.page) || 1,
-            limit: parseInt(queryString.limit) || 10,
+            limit: parseInt(queryString.limit) || apiConfig.response.defaultPageSize,
             select: "-createdAt -updatedAt", // Default fields
             sort: "-views", // Default sorting
             populate: [], // Store populate fields
         };
+        
+        // Enforce maximum page size limit
+        if (this.options.limit > apiConfig.response.maxPageSize) {
+            this.options.limit = apiConfig.response.maxPageSize;
+        }
     }
 
     filter() {

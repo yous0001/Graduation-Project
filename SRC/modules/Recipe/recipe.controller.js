@@ -8,6 +8,7 @@ import Ingredient from './../../../DB/models/ingredient.model.js';
 import axios from "axios";
 import chalk from "chalk";
 import { ApiFeatures } from "../../utils/api-features.js";
+import apiConfig from '../Services/options/api.config.js';
 
 
 
@@ -83,8 +84,8 @@ export const addRecipe=async (req,res,next)=>{
 export const addMealDBRecipes = async (req, res, next) => {
     try {
         console.log(chalk.cyan("Fetching recipes from MealDB API..."));
-        const baseUrl = "https://www.themealdb.com/api/json/v1/1/search.php?f=";
-        const ingredientApiUrl = "https://www.themealdb.com/api/json/v1/1/filter.php?i=";
+        const baseUrl = `${apiConfig.mealDB.baseUrl}${apiConfig.mealDB.endpoints.searchByLetter}`;
+        const ingredientApiUrl = `${apiConfig.mealDB.baseUrl}${apiConfig.mealDB.endpoints.filterByIngredient}`;
         const alphabet = "abcdefghijklmnopqrstuvwxyz";
         
         const insertedRecipes = [];

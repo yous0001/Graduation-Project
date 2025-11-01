@@ -2,6 +2,7 @@ import slugify from "slugify";
 import Category from "../../../DB/models/category.model.js";
 import { cloudinaryConfig, uploadFile } from "../../utils/cloudinary.utils.js";
 import axios from "axios";
+import apiConfig from '../Services/options/api.config.js';
 
 export const createCategory = async(req,res,next)=>{
     const user=req.user;
@@ -55,7 +56,7 @@ export const getCategory=async(req,res,next)=>{
 
 export const addMealDB=async(req,res,next)=>{
     const user=req.user;
-    const response = await axios.get("https://www.themealdb.com/api/json/v1/1/categories.php");
+    const response = await axios.get(`${apiConfig.mealDB.baseUrl}${apiConfig.mealDB.endpoints.categories}`);
     const insertedCategories=[]
     for(const category of response.data.categories){
         const {strCategory,strCategoryThumb,strCategoryDescription}=category

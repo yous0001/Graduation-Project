@@ -4,13 +4,15 @@ import Order from '../../../DB/models/order.model.js';
 import { createCheckoutSession, createStripeCoupon } from '../../payment-handler/stripe.js';
 import { orderStatuses, paymentMethods } from '../../utils/enums.utils.js';
 import { calculateShippingFee, applyCouponDiscount, checkCouponDiscount } from './../Services/order.services.js';
+import orderConfig from './options/order.config.js';
+import paymentConfig from './options/payment.config.js';
 
 export const createOrderByCart = async (req, res, next) => {
     const userId = req.user._id;
     const { shippingAddressID, contactNumber, couponCode, paymentMethod } = req.body;
     let couponId = null;
 
-    const vat=14
+    const vat = orderConfig.vat.rate;
     const cart = await Cart.findOne({ userID: userId }).populate('ingredients.IngredientID')
     if (!cart || cart.ingredients.length == 0) {
         return res.status(400).json({ success: false, message: "cart is empty" });
@@ -31,7 +33,7 @@ export const createOrderByCart = async (req, res, next) => {
     const subTotal = cart.subTotal;
     const shippingFee = calculateShippingFee(cart.ingredients.length);
 
-    const vatAmount=Math.ceil(subTotal*vat/100)
+    const vatAmount = Math.ceil(subTotal * vat / 100)
     let total = subTotal + shippingFee + vatAmount
 
     if (couponCode) {
@@ -85,33 +87,33 @@ export const payWithStripe = async (req, res, next) => {
         discounts: [],
         line_items: order.items.map(item => ({
             price_data: {
-                currency: "EGP",
+                currency: paymentConfig.stripe.currency,
                 product_data: {
                     name: item.ingredientId.name,
                     images: [item.ingredientId.image.secure_url],
                 },
-                unit_amount: item.price * 100,
+                unit_amount: item.price * paymentConfig.stripe.multiplier,
             },
             quantity: item.quantity
         }))
     }
     paymentObject.line_items.push({
         price_data: {
-            currency: "EGP",
+            currency: paymentConfig.stripe.currency,
             product_data: {
                 name: "shipping fee",
             },
-            unit_amount: order.shippingFee * 100,
+            unit_amount: order.shippingFee * paymentConfig.stripe.multiplier,
         },
         quantity: 1
     })
     paymentObject.line_items.push({
         price_data: {
-            currency: "EGP",
+            currency: paymentConfig.stripe.currency,
             product_data: {
                 name: "vat",
             },
-            unit_amount: order.vat * 100,
+            unit_amount: order.vat * paymentConfig.stripe.multiplier,
         },
         quantity: 1
     })

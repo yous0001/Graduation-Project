@@ -7,6 +7,7 @@ import sendmailservice from './../Services/sendMail.js';
 import Recommendation from "../../../DB/models/recommended.model.js";
 import slugify from "slugify";
 import chalk from "chalk";
+import aiConfig from './options/ai.config.js';
 
 
 export const getRecommendation = async (req, res, next) => {
@@ -202,7 +203,7 @@ export const searchWithAi = async (req, res, next) => {
         }
 
         // Call Flask API to get initial recommendations
-        const { data: response } = await axios.post('http://127.0.0.1:5000/recommend', {
+        const { data: response } = await axios.post(aiConfig.endpoints.flask.recommend, {
             ingredients,
             start,
             count

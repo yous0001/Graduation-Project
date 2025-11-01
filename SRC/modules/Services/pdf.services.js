@@ -1,6 +1,7 @@
 import PDFDocument from 'pdfkit';
 import { PDFDocument as PDFLibDocument } from 'pdf-lib';
 import fs from 'fs';
+import aiConfig from '../Ai/options/ai.config.js';
 
 // Escape special characters and normalize fractions
 const escapeText = (text) => {
@@ -78,18 +79,18 @@ const predictEffect = (dietPlan, preferences, userData = {}) => {
             (totalSurplus * muscleEfficiency) / 2500,
             rate.max * (30 / 30.42)
         ).toFixed(1);
-        const muscleGainMin = Math.max(muscleGainKg * 0.9, rate.min * (30 / 30.42)).toFixed(1);
-        const fatLossKg = Math.min((proteinGrams * 30 * 0.01) / 7700, 0.5).toFixed(1);
-        const fatLossMax = (fatLossKg * 1.3).toFixed(1);
+        const muscleGainMin = Math.max(muscleGainKg * aiConfig.pdf.calculations.muscleGainMultiplier, rate.min * (aiConfig.pdf.calculations.daysInMonth / aiConfig.pdf.calculations.daysInMonthAdjusted)).toFixed(1);
+        const fatLossKg = Math.min((proteinGrams * aiConfig.pdf.calculations.daysInMonth * 0.01) / aiConfig.pdf.calculations.caloriesPerKgFat, aiConfig.pdf.calculations.maxFatLossDaily).toFixed(1);
+        const fatLossMax = (fatLossKg * aiConfig.pdf.calculations.fatLossMultiplierHigh).toFixed(1);
         const strengthGain = trainingExperience === 'beginner' ? '5–10%' : '2–5%';
         const waistReduction = fatLossKg > 0 ? '1–2cm' : '0–1cm';
 
         return `With your high-protein diet (~${Math.round(proteinGrams)}g/day) and muscle gain goal, you can expect to gain ${muscleGainMin}–${muscleGainKg}kg of muscle, lose ${fatLossKg}–${fatLossMax}kg of fat, increase strength by ${strengthGain}, and reduce waist circumference by ${waistReduction} over 30 days, assuming consistent resistance training 3–4 times per week and 85–90% diet adherence.`;
     } else if (normalizedGoal === 'weight loss') {
         const dailyDeficit = tdee - totalCalories;
-        const totalDeficit = dailyDeficit * 30;
-        const fatLossKg = Math.min(totalDeficit / 7700, 3).toFixed(1);
-        const fatLossMax = (fatLossKg * 1.2).toFixed(1);
+        const totalDeficit = dailyDeficit * aiConfig.pdf.calculations.daysInMonth;
+        const fatLossKg = Math.min(totalDeficit / aiConfig.pdf.calculations.caloriesPerKgFat, aiConfig.pdf.calculations.maxFatLossKg).toFixed(1);
+        const fatLossMax = (fatLossKg * aiConfig.pdf.calculations.fatLossMultiplierLow).toFixed(1);
         const muscleLoss = proteinGrams >= 1.6 * weight ? 'minimal' : '0.1–0.2kg';
         const strengthGain = proteinGrams >= 1.6 * weight ? '2–5%' : 'maintained';
         const waistReduction = fatLossKg > 1 ? '2–4cm' : '1–2cm';
@@ -106,7 +107,7 @@ const predictEffect = (dietPlan, preferences, userData = {}) => {
     return `With your diet (~${Math.round(proteinGrams)}g/day), you can expect improved health, energy, and body composition over 30 days with consistent exercise and 85–90% diet adherence.`;
 };
 
-export async function generateDietPlanPdf(dietPlan, maxDays = 10, preferences = '', userData = {}) {
+export async function generateDietPlanPdf(dietPlan, maxDays = aiConfig.limits.maxDaysInPdf, preferences = '', userData = {}) {
     try {
         // Validate dietPlan
         if (!dietPlan?.dietPlan?.length || !dietPlan.totalCalories) {
@@ -163,7 +164,7 @@ export async function generateDietPlanPdf(dietPlan, maxDays = 10, preferences = 
 
         // Helper: Add wrapped text with accurate height tracking
         const addWrappedText = (text, x, y, options = {}) => {
-            const { font = fonts.regular, size = 10, color = colors.text, align = 'left', maxWidth = doc.page.width - 95 } = options;
+            const { font = fonts.regular, size = aiConfig.pdf.layout.fontSize, color = colors.text, align = 'left', maxWidth = doc.page.width - aiConfig.pdf.layout.pageMargin } = options;
             let currentY = y;
 
             // Set font and size
