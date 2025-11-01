@@ -18,7 +18,6 @@ export const addIngredient = async (req, res, next) => {
         lower: true,
     });
 
-    // Check if ingredient with the same slug already exists
     const isIngredientExists = await Ingredient.findOne({ slug });
     if (isIngredientExists) {
         return next(new Error(`Ingredient with this name already exists`, { cause: 400 }));
@@ -81,9 +80,10 @@ export const deleteIngredient=async (req, res,next) => {
 export const updateIngredient = async (req, res, next) => {
     const { name, description, basePrice, discountAmount, discountType, stock } = req.body;
     const { id } = req.params;
+    const user = req.user;
 
     const ingredient = await Ingredient.findById(id);
-    if (!ingredient) return res.status(404).json({ success: false, message:"Ingredient not found"})
+    if (!ingredient) return next(new Error("Ingredient not found", { cause: 404 }));
 
     if (name) {
         ingredient.name = name;
@@ -98,9 +98,13 @@ export const updateIngredient = async (req, res, next) => {
         ingredient.appliedPrice = basePrice;
     }
     if (discountAmount && discountType) {
-        if(discountType==="percentage" && discountAmount>100)return res.status(409).json({ success: false, message:"discount can't be more than 100%"})
-        ingredient.discountAmount = discountAmount
-        ingredient.discountType = discountType
+        if(discountType==="percentage" && discountAmount>100) {
+            return next(new Error("Discount can't be more than 100%", { cause: 409 }));
+        }
+        ingredient.discount = {
+            amount: discountAmount,
+            type: discountType
+        };
         switch (discountType) {
             case "percentage":
                 ingredient.appliedPrice = ingredient.basePrice * (1 - discountAmount / 100);
@@ -111,8 +115,10 @@ export const updateIngredient = async (req, res, next) => {
         }
     }
     if (stock) ingredient.stock = stock;
-    ingredient.__v++
-    await ingredient.save()
+    
+    ingredient.updatedBy = user._id;
+    ingredient.__v++;
+    await ingredient.save();
 
     res.status(200).json({ success: true, message: "Ingredient updated successfully", ingredient });
 }
@@ -125,7 +131,7 @@ export const addMealDBIngredients = async (req, res, next) => {
     
         if (!ingredients?.length) {
             console.log(chalk.yellow("No ingredients found from the API."));
-            return res.status(404).json({ message: "No ingredients found from the API" });
+            return res.status(404).json({ success: false, message: "No ingredients found from the API" });
         }
     
         const insertedIngredients = [];
@@ -186,6 +192,7 @@ export const addMealDBIngredients = async (req, res, next) => {
         console.log(chalk.green.bold(`${insertedIngredients.length} ingredients inserted successfully.`));
     
         return res.status(201).json({
+            success: true,
             message: `${insertedIngredients.length} ingredients inserted successfully.`,
             ingredients: insertedIngredients,
         });
