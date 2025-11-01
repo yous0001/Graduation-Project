@@ -3,7 +3,7 @@ import Cart from '../../../DB/models/cart.model.js';
 import Order from '../../../DB/models/order.model.js';
 import { createCheckoutSession, createStripeCoupon } from '../../payment-handler/stripe.js';
 import { orderStatuses, paymentMethods } from '../../utils/enums.utils.js';
-import { calculateShippingFee, applyCouponDiscount, checkCouponDiscount } from './../Services/order.services.js';
+import { calculateShippingFee, applyCouponDiscount, checkCouponDiscount } from './order.services.js';
 import orderConfig from './options/order.config.js';
 import paymentConfig from './options/payment.config.js';
 

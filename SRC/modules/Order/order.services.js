@@ -1,6 +1,6 @@
 import { discountTypes } from '../../utils/enums.utils.js';
 import Coupon from './../../../DB/models/coupon.model.js';
-import orderConfig from '../Order/options/order.config.js';
+import orderConfig from './options/order.config.js';
 
 
 export const calculateShippingFee = (itemCount) => {

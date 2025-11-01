@@ -1,6 +1,6 @@
 import axios from "axios";
 import { validGoals } from "../../utils/enums.utils.js";
-import { enhanceRecipesGemini, generateDietPlan, generateImage, generateImageForGemini, generateRecipeByMood, generateRecipeGemini, generateRecipeM1 } from "../Services/ai.services.js";
+import { enhanceRecipesGemini, generateDietPlan, generateImage, generateImageForGemini, generateRecipeByMood, generateRecipeGemini, generateRecipeM1 } from "./ai.services.js";
 import { generateDietPlanPdf } from "../Services/pdf.services.js";
 import { dietPlanEmailTemplate } from './../Services/emailTempletes.js';
 import sendmailservice from './../Services/sendMail.js';

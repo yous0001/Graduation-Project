@@ -1,5 +1,5 @@
 import { paymentMethods } from "../../utils/enums.utils.js";
-import paymentConfig from "../Order/options/payment.config.js";
+import paymentConfig from "./options/payment.config.js";
 
 const processPayment = async (userId, amount, paymentMethod) => {
     try {

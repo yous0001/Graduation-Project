@@ -4,8 +4,8 @@ import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from '@google/ge
 import { marked } from 'marked';
 import { parse } from 'node-html-parser';
 import { validGoals } from '../../utils/enums.utils.js';
-import aiConfig from '../Ai/options/ai.config.js';
-import validationConfig from './options/validation.config.js';
+import aiConfig from './options/ai.config.js';
+import validationConfig from '../Services/options/validation.config.js';
 
 // Initialize the Gemini API client
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
