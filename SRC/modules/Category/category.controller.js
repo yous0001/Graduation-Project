@@ -31,12 +31,12 @@ export const createCategory = async(req,res,next)=>{
         }
     }
     const category=await  Category.create(categoryObj);
-    return res.status(201).json({sucess:true,message:"category created successfully",category})
+    return res.status(201).json({success:true,message:"category created successfully",category})
 }
 
 export const getAllCategories = async(req,res,next)=>{
     const categories=await Category.find()
-    return res.status(200).json({sucess:true,categories})
+    return res.status(200).json({success:true,categories})
 }
 export const getCategory=async(req,res,next)=>{
     const {id,name}=req.query;
@@ -50,7 +50,7 @@ export const getCategory=async(req,res,next)=>{
     }
     const category=await Category.findOne(queryFilter);
     if(!category)return next(new Error(`Category not found`,{cause:404}));
-    return res.status(200).json({sucess:true,category})
+    return res.status(200).json({success:true,category})
 }
 
 export const addMealDB=async(req,res,next)=>{
@@ -59,8 +59,8 @@ export const addMealDB=async(req,res,next)=>{
     const insertedCategories=[]
     for(const category of response.data.categories){
         const {strCategory,strCategoryThumb,strCategoryDescription}=category
-        const slug=strCategory
-        const isCategoryExists=await Category.findOne({name:strCategory})
+        const slug=slugify(strCategory,{replacement: "_",lower: true})
+        const isCategoryExists=await Category.findOne({name:slug})
         if(isCategoryExists) continue;
         const { secure_url, public_id } = await uploadFile({
             file: strCategoryThumb,
@@ -78,8 +78,8 @@ export const addMealDB=async(req,res,next)=>{
         const newCategory=await Category.create(categoryObj);
         insertedCategories.push(newCategory);
     }
-    if(insertedCategories.length==0)return res.status(200).json({message:"no new categories to be added"})
-    res.status(201).json({message:"categories added successfully",insertedCategories});
+    if(insertedCategories.length==0)return res.status(200).json({success:true,message:"no new categories to be added"})
+    res.status(201).json({success:true,message:"categories added successfully",insertedCategories});
 }
 
 export const updateCategory=async(req,res,next)=>{
@@ -100,7 +100,10 @@ export const updateCategory=async(req,res,next)=>{
         })
         category.image.secure_url=secure_url
     }
+    if (req.user && req.user._id) {
+        category.updatedBy = req.user._id;
+    }
     await category.save();
-    res.status(200).json({message:"category updated successfully",category})
+    res.status(200).json({success:true,message:"category updated successfully",category})
     
 }
