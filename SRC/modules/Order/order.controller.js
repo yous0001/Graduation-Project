@@ -13,20 +13,20 @@ export const createOrderByCart = async (req, res, next) => {
     const vat=14
     const cart = await Cart.findOne({ userID: userId }).populate('ingredients.IngredientID')
     if (!cart || cart.ingredients.length == 0) {
-        return res.status(400).json({ message: "cart is empty" });
+        return res.status(400).json({ success: false, message: "cart is empty" });
     }
 
     const isNotAvaliable = cart.ingredients.find(ing => ing.IngredientID.stock < ing.quantity)
     if (isNotAvaliable) {
-        return res.status(400).json({ message: `ingredient ${isNotAvaliable.IngredientID.name} is not available` });
+        return res.status(400).json({ success: false, message: `ingredient ${isNotAvaliable.IngredientID.name} is not available` });
     }
 
     const isAddrecessExist = await Address.findById(shippingAddressID);
     if (!isAddrecessExist) {
-        return res.status(400).json({ message: "shipping address not found" });
+        return res.status(400).json({ success: false, message: "shipping address not found" });
     }
     if(isAddrecessExist.userId.toString()!==userId.toString() ) 
-        return res.status(400).json({message:"this is not one of your addresses."});
+        return res.status(400).json({ success: false, message:"this is not one of your addresses."});
 
     const subTotal = cart.subTotal;
     const shippingFee = calculateShippingFee(cart.ingredients.length);
@@ -59,10 +59,11 @@ export const createOrderByCart = async (req, res, next) => {
         subTotal,
         total,
         items,
-        fromCart: true
+        fromCart: true,
+        createdBy: userId
     })
     await Cart.deleteOne({ userID: userId })
-    return res.status(201).json({ message: "order created", order })
+    return res.status(201).json({ success: true, message: "order created", order })
 }
 
 export const payWithStripe = async (req, res, next) => {
@@ -124,7 +125,7 @@ export const payWithStripe = async (req, res, next) => {
         })
     }
     const checkOutSession = await createCheckoutSession(paymentObject);
-    return res.status(200).json({ checkOutSession })
+    return res.status(200).json({ success: true, checkOutSession })
 }
 
 export const orderOverview = async (req, res, next) => {
@@ -136,12 +137,12 @@ export const orderOverview = async (req, res, next) => {
     const vat=14
     const cart = await Cart.findOne({ userID: userId }).populate('ingredients.IngredientID')
     if (!cart || cart.ingredients.length == 0) {
-        return res.status(400).json({ message: "cart is empty" });
+        return res.status(400).json({ success: false, message: "cart is empty" });
     }
 
     const isNotAvaliable = cart.ingredients.find(ing => ing.IngredientID.stock < ing.quantity)
     if (isNotAvaliable) {
-        return res.status(400).json({ message: `ingredient ${isNotAvaliable.IngredientID.name} is not available` });
+        return res.status(400).json({ success: false, message: `ingredient ${isNotAvaliable.IngredientID.name} is not available` });
     }
 
     const subTotal = cart.subTotal;
@@ -160,7 +161,7 @@ export const orderOverview = async (req, res, next) => {
         coupondiscount=discount
     }
 
-    return res.status(200).json({ couponId, shippingFee, vatAmount,coupondiscount, subTotal, total , addresses: user.addresses })
+    return res.status(200).json({ success: true, couponId, shippingFee, vatAmount,coupondiscount, subTotal, total , addresses: user.addresses })
 }
 
 export const checkCouponCode = async (req,res,next) => {
@@ -172,20 +173,21 @@ export const checkCouponCode = async (req,res,next) => {
             total
         );
 
-    return res.status(200).json({ totalAfterDiscount: updatedTotal, couponId: appliedCouponId,discount })
+    return res.status(200).json({ success: true, totalAfterDiscount: updatedTotal, couponId: appliedCouponId,discount })
 }
 
 export const cancelOrder=async(req,res,next)=>{
     const {id}=req.params
-    const order=await Order.findOneAndUpdate({_id:id},{orderStatus:orderStatuses.cancelled},{new:true})
+    const userId = req.user._id;
+    const order=await Order.findOneAndUpdate({_id:id},{orderStatus:orderStatuses.cancelled, updatedBy: userId},{new:true})
     if(!order) return next(new Error("order not found", { cause: 404 }))
-    return res.status(200).json({message:"order canceled",order})
+    return res.status(200).json({ success: true, message:"order canceled",order})
 }
 
 export const getOrders=async(req,res,next)=>{
     const user=req.user
     const orders=await Order.find({userId:user._id}).populate('items.ingredientId').populate('shippingAddressID')
-    return res.status(200).json({orders})
+    return res.status(200).json({ success: true, orders})
 }
 
 export const getSpecificOrder=async(req,res,next)=>{
@@ -193,5 +195,5 @@ export const getSpecificOrder=async(req,res,next)=>{
     const order=await Order.findOne({_id:id}).populate('items.ingredientId').populate('shippingAddressID')
     if(!order) return next(new Error("order not found", { cause: 404 }))
     if(order.userId.toString()!==req.user._id.toString()) return next(new Error("this is not one of your orders", { cause: 400 }))
-    return res.status(200).json({order})
+    return res.status(200).json({ success: true, order})
 }

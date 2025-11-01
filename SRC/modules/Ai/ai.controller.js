@@ -14,13 +14,14 @@ export const getRecommendation = async (req, res, next) => {
         const { ingredients } = req.body;
 
         if (!ingredients || ingredients.length === 0) {
-            return res.status(400).json({ message: 'Ingredients are required' });
+            return res.status(400).json({ success: false, message: 'Ingredients are required' });
         }
 
         const result = await generateRecipeGemini(ingredients)
         const { recipeJson, recipeMarkdown } = result
         const image = await generateImageForGemini(recipeJson)
         res.status(200).json({
+            success: true,
             message: 'Recipe suggestion retrieved successfully',
             recipeJson,
             recipeMarkdown,
@@ -29,6 +30,7 @@ export const getRecommendation = async (req, res, next) => {
     } catch (error) {
         console.error(error?.response?.data || error.message);
         res.status(500).json({
+            success: false,
             message: 'Failed to fetch recipe suggestion',
             error: error?.response?.data || error.message,
         });
@@ -40,12 +42,13 @@ export const getLegacyRecommendation = async (req, res, next) => {
         const { ingredients } = req.body;
 
         if (!ingredients || ingredients.length === 0) {
-            return res.status(400).json({ message: 'Ingredients are required' });
+            return res.status(400).json({ success: false, message: 'Ingredients are required' });
         }
 
         const result = await generateRecipeM1(ingredients)
         const image = await generateImage(result)
         res.status(200).json({
+            success: true,
             message: 'Recipe suggestion retrieved successfully',
             suggestion: result,
             image
@@ -53,6 +56,7 @@ export const getLegacyRecommendation = async (req, res, next) => {
     } catch (error) {
         console.error(error?.response?.data || error.message);
         res.status(500).json({
+            success: false,
             message: 'Failed to fetch recipe suggestion',
             error: error?.response?.data || error.message,
         });
@@ -68,6 +72,7 @@ export const getRecipeByMood = async (req, res, next) => {
         console.log(recipeJson)
         const image = await generateImageForGemini(recipeJson)
         res.status(200).json({
+            success: true,
             message: 'Recipe suggestion retrieved successfully',
             recipeJson,
             recipeMarkdown,
@@ -76,6 +81,7 @@ export const getRecipeByMood = async (req, res, next) => {
     } catch (error) {
         console.error(error?.response?.data || error.message);
         res.status(500).json({
+            success: false,
             message: 'Failed to fetch recipe suggestion',
             error: error?.response?.data || error.message,
         });
@@ -100,18 +106,18 @@ export const getDietPlan = async (req, res, next) => {
 
         // Validate required fields
         if (!height || !age || !weight || !fatPercentage || !goal || !preferences || !gender) {
-            return res.status(400).json({ error: 'All fields (height, age, weight, fatPercentage, goal, preferences, gender) are required' });
+            return res.status(400).json({ success: false, error: 'All fields (height, age, weight, fatPercentage, goal, preferences, gender) are required' });
         }
 
         // Validate goal
         const normalizedGoal = goal.trim().toLowerCase();
         if (!Object.values(validGoals).includes(normalizedGoal)) {
-            return res.status(400).json({ error: `Invalid goal. Must be one of: ${Object.values(validGoals).join(', ')}` });
+            return res.status(400).json({ success: false, error: `Invalid goal. Must be one of: ${Object.values(validGoals).join(', ')}` });
         }
 
         if (!user?.email) {
             console.warn('User email missing, skipping email');
-            return res.status(400).json({ error: 'User email required' });
+            return res.status(400).json({ success: false, error: 'User email required' });
         }
 
         const dietPlan = await generateDietPlan({
@@ -177,10 +183,10 @@ export const getDietPlan = async (req, res, next) => {
             console.warn('PDF generation failed, skipping email');
         }
 
-        res.json(dietPlan);
+        res.status(200).json({ success: true, ...dietPlan });
     } catch (error) {
         console.error('Error in /ai/diet-plan:', error);
-        res.status(500).json({ error: 'Failed to generate diet plan' });
+        res.status(500).json({ success: false, error: 'Failed to generate diet plan' });
         next(error);
     }
 };
@@ -192,7 +198,7 @@ export const searchWithAi = async (req, res, next) => {
 
         // Validate input
         if (!ingredients) {
-            return res.status(400).json({ message: 'Ingredients is required' });
+            return res.status(400).json({ success: false, message: 'Ingredients is required' });
         }
 
         // Call Flask API to get initial recommendations
@@ -277,11 +283,12 @@ export const searchWithAi = async (req, res, next) => {
         const allRecipes = [...existingRecipesFormatted, ...enhancedRecipes];
 
         res.status(200).json({
+            success: true,
             message: 'Recipe suggestions retrieved successfully',
             enhancedRecipes: allRecipes
         });
     } catch (error) {
         console.error('Error in searchWithAi:', error.message);
-        res.status(500).json({ message: 'Something went wrong', error: error.message });
+        res.status(500).json({ success: false, message: 'Something went wrong', error: error.message });
     }
 };

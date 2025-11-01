@@ -10,7 +10,7 @@ export const addBanner=async(req,res,next)=>{
 
     const isBannerExists= await Banner.findOne({ section });
     if (isBannerExists) {
-        return res.status(404).json({ message: "section is already have banner please select another section or update the banner" });
+        return res.status(404).json({ success: false, message: "section is already have banner please select another section or update the banner" });
     }
 
     if(!req.files.length){
@@ -27,7 +27,7 @@ export const addBanner=async(req,res,next)=>{
     }
 
     const banner=await Banner.create({section,Images,addedBy:user._id})
-    return res.status(200).json({sucess:true,banner})
+    return res.status(200).json({success:true,banner})
 }
 
 export const deleteBanner=async(req,res,next)=>{
@@ -36,7 +36,7 @@ export const deleteBanner=async(req,res,next)=>{
         return next(new Error('Please provide banner id',{cause:400}));
     const isBannerExists= await Banner.findById(id);
     if (!isBannerExists) {
-        return res.status(404).json({ message: "banner not found" });
+        return res.status(404).json({ success: false, message: "banner not found" });
     }
 
     const publicIds = isBannerExists.Images.map((img) => img.public_id);
@@ -45,7 +45,7 @@ export const deleteBanner=async(req,res,next)=>{
     const folderPath = `${process.env.UPLOADS_FOLDER}/banners/${isBannerExists.section}`;
     await cloudinaryConfig().api.delete_folder(folderPath);
     await Banner.findByIdAndDelete(isBannerExists._id)
-    return res.status(200).json({message:"banner deleted successfully"})
+    return res.status(200).json({success: true, message:"banner deleted successfully"})
 }
 
 export const getBanners=async(req,res,next)=>{
@@ -53,16 +53,17 @@ export const getBanners=async(req,res,next)=>{
     if(!section)
         return next(new Error('Please select a section',{cause:400}));
     const banners=await Banner.findOne({section}).select('-addedBy -Images._id -Images.public_id');
-    return res.status(200).json({sucess:true,banners})
+    return res.status(200).json({success:true,banners})
 }
 
 export const updateBanner=async(req,res,next)=>{
     const {id}=req.params;
+    const user = req.user;
     if(!id)
         return next(new Error('Please provide banner id',{cause:400}));
     const isBannerExists= await Banner.findById(id);
     if (!isBannerExists) {
-        return res.status(404).json({ message: "banner not found" });
+        return res.status(404).json({ success: false, message: "banner not found" });
     }
     const publicIds = isBannerExists.Images.map((img) => img.public_id);
     await cloudinaryConfig().api.delete_resources(publicIds);
@@ -80,6 +81,7 @@ export const updateBanner=async(req,res,next)=>{
         Images.push({public_id,secure_url})
     }
     isBannerExists.Images=Images
+    isBannerExists.updatedBy = user._id;
     await isBannerExists.save();
-    return res.status(200).json({sucess:true,banner:isBannerExists})
+    return res.status(200).json({success:true,banner:isBannerExists})
 }

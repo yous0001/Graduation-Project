@@ -7,11 +7,11 @@ export const addReview = async (req, res, next) => {
     const userID = req.user._id; // assume user is logged in
 
     if (!rate || (!recipeId && !ingredientId)) {
-        return res.status(400).json({ message: "Missing required fields" });
+        return res.status(400).json({ success: false, message: "Missing required fields" });
     }
 
     if (recipeId && ingredientId) {
-        return res.status(400).json({ message: "Review can be for either recipe or ingredient, not both." });
+        return res.status(400).json({ success: false, message: "Review can be for either recipe or ingredient, not both." });
     }
 
     let targetModel = null;
@@ -22,21 +22,21 @@ export const addReview = async (req, res, next) => {
         targetModel = Recipe;
         targetDoc = await Recipe.findById(recipeId);
         if (!targetDoc) {
-            return res.status(404).json({ message: "Recipe not found" });
+            return res.status(404).json({ success: false, message: "Recipe not found" });
         }
         const existingReview = await Review.findOne({ recipe: recipeId, userID });
         if (existingReview) {
-            return res.status(400).json({ message: "You have already reviewed this recipe" });
+            return res.status(400).json({ success: false, message: "You have already reviewed this recipe" });
         }
     } else if (ingredientId) {
         targetModel = Ingredient;
         targetDoc = await Ingredient.findById(ingredientId);
         if (!targetDoc) {
-            return res.status(404).json({ message: "Ingredient not found" });
+            return res.status(404).json({ success: false, message: "Ingredient not found" });
         }
         const existingReview = await Review.findOne({ ingredient: ingredientId, userID });
         if (existingReview) {
-            return res.status(400).json({ message: "You have already reviewed this ingredient" });
+            return res.status(400).json({ success: false, message: "You have already reviewed this ingredient" });
         }
     }
     const newReview = await Review.create({
@@ -48,7 +48,7 @@ export const addReview = async (req, res, next) => {
     });
 
     if (!newReview)
-        return res.status(500).json({ message: "Failed to create review" });
+        return res.status(500).json({ success: false, message: "Failed to create review" });
     let populatedReview = await Review.findById(newReview._id).populate({ path: "userID", select: "username email profileImage.secure_url" });
     //average*numberOfRating=>totalreviews
     //totalReviews+rate/(numberOfReviews+1)=>to get new average
@@ -60,7 +60,7 @@ export const addReview = async (req, res, next) => {
     populatedReview.likesCount = populatedReview.likes.length || 0;
     populatedReview.dislikesCount = populatedReview.dislikes.length || 0;
 
-    res.status(201).json({ message: "Review added successfully", review: populatedReview });
+    res.status(201).json({ success: true, message: "Review added successfully", review: populatedReview });
 }
 
 export const addReaction = async (req, res, next) => {
@@ -69,12 +69,12 @@ export const addReaction = async (req, res, next) => {
     const userId = req.user._id;
 
     if (!["like", "dislike"].includes(action)) {
-        return res.status(400).json({ message: "Invalid action. Must be 'like' or 'dislike'." });
+        return res.status(400).json({ success: false, message: "Invalid action. Must be 'like' or 'dislike'." });
     }
 
     const review = await Review.findById(reviewId);
     if (!review) {
-        return res.status(404).json({ message: "Review not found." });
+        return res.status(404).json({ success: false, message: "Review not found." });
     }
 
     const alreadyLiked = review.likes.includes(userId);
@@ -100,6 +100,7 @@ export const addReaction = async (req, res, next) => {
 
     await review.save();
     return res.status(200).json({
+        success: true,
         message: `added ${action} to review successfully`,
         likes: review.likes.length,
         dislikes: review.dislikes.length,
@@ -113,11 +114,11 @@ export const deleteReview = async (req, res, next) => {
 
     const review = await Review.findById(reviewId);
     if (!review) {
-        return res.status(404).json({ message: "Review not found" });
+        return res.status(404).json({ success: false, message: "Review not found" });
     }
 
     if (review.userID.toString() !== userID.toString()) {
-        return res.status(403).json({ message: "You are not allowed to delete this review" });
+        return res.status(403).json({ success: false, message: "You are not allowed to delete this review" });
     }
 
     let targetDoc = null;
@@ -128,7 +129,7 @@ export const deleteReview = async (req, res, next) => {
     }
 
     if (!targetDoc) {
-        return res.status(404).json({ message: "Target item not found" });
+        return res.status(404).json({ success: false, message: "Target item not found" });
     }
     //average*numberOfRating=>totalreviews
     const total = targetDoc.Average_rating * targetDoc.number_of_ratings;
@@ -144,7 +145,7 @@ export const deleteReview = async (req, res, next) => {
     await targetDoc.save();
     await Review.findByIdAndDelete(reviewId);
 
-    res.status(200).json({ message: "Review deleted successfully" });
+    res.status(200).json({ success: true, message: "Review deleted successfully" });
 };
 
 export const updateReview = async (req, res, next) => {
@@ -154,11 +155,11 @@ export const updateReview = async (req, res, next) => {
 
     let review = await Review.findById(reviewId);
     if (!review) {
-        return res.status(404).json({ message: "Review not found" });
+        return res.status(404).json({ success: false, message: "Review not found" });
     }
 
     if (review.userID.toString() !== userID.toString()) {
-        return res.status(403).json({ message: "You are not allowed to update this review" });
+        return res.status(403).json({ success: false, message: "You are not allowed to update this review" });
     }
 
     let targetDoc = null;
@@ -169,7 +170,7 @@ export const updateReview = async (req, res, next) => {
     }
 
     if (!targetDoc) {
-        return res.status(404).json({ message: "Target item not found" });
+        return res.status(404).json({ success: false, message: "Target item not found" });
     }
 
     // Update average rating if the rate changed
@@ -187,7 +188,7 @@ export const updateReview = async (req, res, next) => {
     review = review.toObject();
     review.likesCount = review.likes.length || 0;
     review.dislikesCount = review.dislikes.length || 0;
-    res.status(200).json({ message: "Review updated successfully", review });
+    res.status(200).json({ success: true, message: "Review updated successfully", review });
 };
 
 export const getReviews = async (req, res, next) => {
@@ -195,11 +196,11 @@ export const getReviews = async (req, res, next) => {
     const user = req.user;
 
     if (!recipeId && !ingredientId) {
-        return res.status(400).json({ message: "Please provide either recipeId or ingredientId" });
+        return res.status(400).json({ success: false, message: "Please provide either recipeId or ingredientId" });
     }
 
     if (recipeId && ingredientId) {
-        return res.status(400).json({ message: "Please provide only one of recipeId or ingredientId, not both" });
+        return res.status(400).json({ success: false, message: "Please provide only one of recipeId or ingredientId, not both" });
     }
     const reviews = await Review.find({ recipe: recipeId || null, ingredient: ingredientId || null }).populate({ path: "userID", select: "username email profileImage.secure_url" });
     const reviewsWithCounts = reviews.map((review) => {
@@ -213,5 +214,5 @@ export const getReviews = async (req, res, next) => {
             userAction: hasLiked ? "like" : hasDisliked ? "dislike" : null,
         }
     });
-    res.status(200).json({ reviews: reviewsWithCounts ,user:user._id});
+    res.status(200).json({ success: true, reviews: reviewsWithCounts, user: user._id });
 };
