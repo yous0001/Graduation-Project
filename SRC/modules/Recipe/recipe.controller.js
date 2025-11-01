@@ -76,7 +76,7 @@ export const addRecipe=async (req,res,next)=>{
     if(!newRecipe){
         return next(new Error('Failed to create recipe',{cause:500}));
     }
-    res.status(201).json({sucess:true,message:"Recipe created successfully",recipe:newRecipe});
+    res.status(201).json({success:true,message:"Recipe created successfully",recipe:newRecipe});
 } 
 
 
@@ -212,8 +212,11 @@ export const addMealDBRecipes = async (req, res, next) => {
 export const updateRecipe=async(req,res,next)=>{
     const {recipeID}=req.params
     const {name,description,directions,tags,videoLink}=req.body
+    const user = req.user;
+    
     const recipe=await Recipe.findById(recipeID)
     if(!recipe) return next(new Error('Recipe not found',{cause:404}))
+    
     if(name) {
         recipe.name=name
         recipe.slug=slugify(name, { replacement: "_", lower: true })
@@ -222,8 +225,11 @@ export const updateRecipe=async(req,res,next)=>{
     if(directions) recipe.directions=directions
     if(tags) recipe.tags=tags
     if(videoLink) recipe.videoLink=videoLink
+    
+    recipe.updatedBy = user._id;
     await recipe.save()
-    res.status(200).json({message:"Recipe updated successfully",recipe})
+    
+    res.status(200).json({success:true,message:"Recipe updated successfully",recipe})
 }
 
 
@@ -272,7 +278,7 @@ export const viewRecipe=async(req,res,next)=>{
     const {recipeID}=req.params
     const recipe=await Recipe.findByIdAndUpdate(recipeID, { $inc: { views: 1 } }, { new: true });
     if(!recipe) return next(new Error('Recipe not found',{cause:404}))
-    res.status(200).json({message:"Recipe viewed successfully",recipe})
+    res.status(200).json({success:true,message:"Recipe viewed successfully",recipe})
 }
 
 export const getSpecificRecipe=async(req,res,next)=>{
@@ -302,5 +308,5 @@ export const getSpecificRecipe=async(req,res,next)=>{
             }]
             );
     if(!recipe) return next(new Error('Recipe not found',{cause:404}))
-    res.status(200).json({message:"Recipe found successfully",recipe})
+    res.status(200).json({success:true,message:"Recipe found successfully",recipe})
 }
