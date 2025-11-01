@@ -9,6 +9,22 @@ import { cloudinaryConfig } from './../../utils/cloudinary.utils.js';
 import Recipe from './../../../DB/models/recipe.model.js';
 import { ApiFeatures } from '../../utils/api-features.js';
 
+const sanitizeUser = (userDoc) => {
+    if (!userDoc) return null;
+    const user = userDoc.toObject ? userDoc.toObject() : { ...userDoc };
+    delete user.profileImage?.public_id;
+    delete user.password;
+    delete user.isEmailVerified;
+    delete user.isLoggedIn;
+    delete user.verificationCode;
+    delete user.verificationCodeExpires;
+    delete user.resetPasswordExpires;
+    delete user.resetPasswordToken;
+    delete user.favoriteRecipes;
+    delete user.ownedIngredients;
+    return user;
+}
+
 export const register = async(req,res,next)=>{
     const {name,email,password,phoneNumbers} = req.body;
     const isEmailExists = await User.findOne({email});
@@ -16,12 +32,12 @@ export const register = async(req,res,next)=>{
         return res.status(400).json({message:"email already exists"});    
     }
     const hashedPassword=bcrypt.hashSync(password,+process.env.SALT_ROUNDS);
-    const usertoken=jwt.sign({email},process.env.JWT_SECRET_VERFICATION,{expiresIn:'1d'});
+    const userToken=jwt.sign({email},process.env.JWT_SECRET_VERFICATION,{expiresIn:'1d'});
     
     const isEmailsent=await sendmailservice({
         to:email,
         subject:"please verify your email",
-        message:verificationEmailTemplate.replace("{{url}}",`${process.env.CLIENT_URL}/auth/verify-email/${usertoken}`),
+        message:verificationEmailTemplate.replace("{{url}}",`${process.env.CLIENT_URL}/auth/verify-email/${userToken}`),
         attachments:[]
     })
 
@@ -108,29 +124,12 @@ export const verifyLoginCode = async(req,res,next)=>{
     user.verificationCodeExpires = null;
     user.isLoggedIn=true;
     await user.save();
-    user=user.toObject();
-
-    delete user.profileImage?.public_id
-    delete user.password;
-    delete user.isEmailVerified
-    delete user.isLoggedIn
-    delete user.verificationCode
-    delete user.verificationCodeExpires
-    delete user.resetPasswordExpires
-    delete user.resetPasswordToken
-    delete user.favoriteRecipes
-    delete user.ownedIngredients
-    delete user.createdAt
-    delete user.updatedAt
-    delete user.age
-    delete user.__v
-    delete user.phoneNumbers
-    delete user.addresses
+    const sanitizedUser = sanitizeUser(user);
 
     const accessToken=jwt.sign({email:user.email,id:user._id},process.env.JWT_SECRET_LOGIN,{expiresIn:process.env.ACCESS_TOKEN_EXPIRATION})
     const refreshToken=jwt.sign({id:user._id},process.env.JWT_SECRET_refresh,{expiresIn:"6d"})
 
-    res.status(200).json({message:"login successful",accessToken:accessToken,refreshToken,...user})
+    res.status(200).json({message:"login successful",accessToken,refreshToken,...sanitizedUser})
     }
 
 
@@ -254,19 +253,8 @@ export const getProfile = async function (req, res, next) {
     if (!user) {
         return res.status(404).json({ message: "user not found" });
     }
-    
-    user=user.toObject();
-    delete user.profileImage?.public_id
-    delete user.password;
-    delete user.isEmailVerified
-    delete user.isLoggedIn
-    delete user.verificationCode
-    delete user.verificationCodeExpires
-    delete user.resetPasswordExpires
-    delete user.resetPasswordToken
-    delete user.favoriteRecipes
-    delete user.ownedIngredients
-    res.status(200).json(user);
+    const sanitizedUser = sanitizeUser(user);
+    res.status(200).json(sanitizedUser);
   };
 export const deleteUser = async function (req, res, next) {
     const user = req.user;
@@ -274,7 +262,7 @@ export const deleteUser = async function (req, res, next) {
     if (!deletedUser) {
         return res.status(404).json({ message: "user deletetion failed" });
     }
-    res.status(200).json({message:"user deleted successfully",message2:"في 60 الف داهيه"});
+    res.status(200).json({message:"user deleted successfully"});
   };
 
 export const uploadProfileImg = async(req, res, next)=>{
@@ -308,7 +296,7 @@ export const deleteProfileImg = async(req, res, next)=>{
         return res.status(400).json({message:"no profile image to delete"});
 
     const deletedImg=await cloudinaryConfig().uploader.destroy(user.profileImage?.public_id);
-    if(deletedImg.result!='ok')//check if image deleted
+    if(deletedImg.result!='ok')
         return res.status(400).json({message:"error", error:deletedImg.result})
     user.profileImage=null
     await user.save();
@@ -337,18 +325,8 @@ export const updateUser = async(req, res, next)=>{
     if(age)
         user.age=age;
     await user.save();
-    user=user.toObject();
-    delete user.profileImage?.public_id
-    delete user.password;
-    delete user.isEmailVerified
-    delete user.isLoggedIn
-    delete user.verificationCode
-    delete user.verificationCodeExpires
-    delete user.resetPasswordExpires
-    delete user.resetPasswordToken
-    delete user.favoriteRecipes
-    delete user.ownedIngredients
-    res.status(200).json({message:"user updated successfully",user});
+    const sanitizedUser = sanitizeUser(user);
+    res.status(200).json({message:"user updated successfully",user:sanitizedUser});
 }
 
 export const toogleFavourite=async (req,res,next)=>{

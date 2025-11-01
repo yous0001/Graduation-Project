@@ -2,7 +2,8 @@ import Stripe from "stripe"
 import Coupon from "../../DB/models/coupon.model.js";
 import { discountTypes } from "../utils/enums.utils.js";
 
-const stripe=new Stripe(process.env.STRIPE_SECRET_KEY)
+const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
+const stripe = STRIPE_SECRET_KEY ? new Stripe(STRIPE_SECRET_KEY) : null;
 
 export const createCheckoutSession=async({
     customer_email,
@@ -11,6 +12,9 @@ export const createCheckoutSession=async({
     line_items,
     customer_data
     })=>{
+    if (!stripe) {
+        throw new Error("Stripe not configured: missing STRIPE_SECRET_KEY");
+    }
     
     const customer = await stripe.customers.create({
         email: customer_email,
@@ -34,6 +38,9 @@ export const createCheckoutSession=async({
 
 
 export const createStripeCoupon=async({couponId})=>{
+    if (!stripe) {
+        throw new Error("Stripe not configured: missing STRIPE_SECRET_KEY");
+    }
     const coupon =await Coupon.findById(couponId);
     if(!coupon){
         return {success:false,message:"coupon not found"}

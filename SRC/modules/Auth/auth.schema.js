@@ -15,7 +15,7 @@ export const registerSchema = {
             "string.email": "Please provide a valid email address.",
             "any.required": "Email is required.",
         }),
-        password: Joi.string().min(6).required().messages({
+        password: Joi.string().min(8).regex(passwordRegex).required().messages({
             "string.pattern.base":
                 "Password must be at least 8 characters long, include at least one uppercase letter, one lowercase letter, one number, and one special character.",
             "string.min": "Password must be at least 8 characters long.",
@@ -26,10 +26,10 @@ export const registerSchema = {
             "any.required": "Confirm password is required.",
         }),
         phoneNumbers: Joi.array()
-        .items(Joi.string().length(11).pattern(/^\d+$/).messages({
+        .items(Joi.string().length(11).pattern(/^01[0-25]\d{8}$/).messages({
             "string.base": "Phone number must be a string.",
             "string.length": "Phone number must be exactly 11 digits.",
-            "string.pattern.base": "Phone number must contain only digits.",
+            "string.pattern.base": "Phone number must be a valid Egyptian phone number.",
         }))
         .required()
         .messages({
