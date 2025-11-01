@@ -1,8 +1,8 @@
 import slugify from "slugify";
 import Category from "../../../DB/models/category.model.js";
-import { cloudinaryConfig, uploadFile } from "../../../utils/cloudinary.utils.js";
+import { cloudinaryConfig, uploadFile } from "../../utils/cloudinary.utils.js";
 import axios from "axios";
-import apiConfig from '../../../Services/options/api.config.js';
+import apiConfig from "../Services/options/api.config.js";
 
 export const createCategory = async(req,res,next)=>{
     const user=req.user;
