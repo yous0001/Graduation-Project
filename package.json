@@ -8,7 +8,8 @@
     "start": "node index.js",
     "dev": "nodemon index.js",
     "test": "bun test",
-    "test:spec": "bun test --filter .spec"
+    "test:spec": "bun test --filter .spec",
+    "test:e2e": "bun test --filter e2e"
   },
   "keywords": [],
   "author": "",
