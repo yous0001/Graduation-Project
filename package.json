@@ -6,7 +6,9 @@
   "scripts": {
     "build": "echo 'Build complete'",
     "start": "node index.js",
-    "dev": "nodemon index.js"
+    "dev": "nodemon index.js",
+    "test": "bun test",
+    "test:spec": "bun test --filter .spec"
   },
   "keywords": [],
   "author": "",
