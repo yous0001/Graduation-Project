@@ -1,7 +1,7 @@
 const reqKeys=['body','headers','query','params']
 export const validationMiddleware=(schema)=>{
     return async (req,res,next)=>{
-        let validationErrors =[];
+        const validationErrors =[];
         for(const key of reqKeys){
             const validationResult=schema[key]?.validate(req[key],{abortEarly:false})
             if(validationResult?.error){

@@ -1,112 +1,177 @@
 import Address from "../../../DB/models/address.model.js";
 import User from "../../../DB/models/user.model.js";
 
+export const addAddress = async (req, res, _next) => {
+  const user = req.user;
+  const {
+    country,
+    city,
+    postalCode,
+    buildingNumber,
+    floorNumber,
+    addressLabel,
+    streetName,
+    notes,
+  } = req.body;
 
-export const addAddress=async(req,res,next)=>{
-    const user = req.user;
-    const {country,city,postalCode,buildingNumber,floorNumber,addressLabel,streetName,notes}=req.body;
-    
-    if(!country||!city||!postalCode||!buildingNumber||!floorNumber||!streetName) 
-        return res.status(400).json({message:"Please provide all the required fields"});
-    
-    const addressObject={
-        country,
-        city,
-        postalCode,
-        buildingNumber,
-        floorNumber,
-        addressLabel,
-        streetName,
-        notes,
-        userId:user._id
-    }
+  if (
+    !country ||
+    !city ||
+    !postalCode ||
+    !buildingNumber ||
+    !floorNumber ||
+    !streetName
+  ) {
+    return res
+      .status(400)
+      .json({ message: "Please provide all the required fields" });
+  }
 
-    const newAddress=await Address.create(addressObject)
-    await User.findByIdAndUpdate(user._id, { $push: { addresses: newAddress._id } });
-    
-    res.status(200).json({message:"address added successfully",address:newAddress});
-} 
+  const addressObject = {
+    country,
+    city,
+    postalCode,
+    buildingNumber,
+    floorNumber,
+    addressLabel,
+    streetName,
+    notes,
+    userId: user._id,
+  };
 
-export const getAddresses=async(req,res,next)=>{
-    const user = req.user;
-    const addresses=user.addresses
-    res.status(200).json({message:"addresses fetched successfully",addresses});
-}
+  const newAddress = await Address.create(addressObject);
+  await User.findByIdAndUpdate(user._id, {
+    $push: { addresses: newAddress._id },
+  });
 
-export const updateAddress=async(req,res,next)=>{
-    const user = req.user;
-    const {addressId}=req.params;
-    const {country,city,postalCode,buildingNumber,floorNumber,addressLabel,notes,streetName}=req.body;
-    
-    if(!addressId) 
-        return res.status(400).json({message:"Please provide the address id"});
+  res
+    .status(200)
+    .json({ message: "address added successfully", address: newAddress });
+};
 
-    const isAddrecessExist=await Address.findById(addressId);
+export const getAddresses = async (req, res, _next) => {
+  const user = req.user;
+  const addresses = user.addresses;
+  res
+    .status(200)
+    .json({ message: "addresses fetched successfully", addresses });
+};
 
-    if(!isAddrecessExist) 
-        return res.status(400).json({message:"Address not found"});
-    if(isAddrecessExist.userId.toString()!==user._id.toString() ) 
-        return res.status(400).json({message:"this is not your address. you aren't authorized to update this address"});
+export const updateAddress = async (req, res, _next) => {
+  const user = req.user;
+  const { addressId } = req.params;
+  const {
+    country,
+    city,
+    postalCode,
+    buildingNumber,
+    floorNumber,
+    addressLabel,
+    notes,
+    streetName,
+  } = req.body;
 
+  if (!addressId) {
+    return res.status(400).json({ message: "Please provide the address id" });
+  }
 
-    const addressObject={
-    }
+  const isAddrecessExist = await Address.findById(addressId);
 
-    if(country) addressObject.country=country;
-    if(city) addressObject.city=city;
-    if(postalCode) addressObject.postalCode=postalCode;
-    if(buildingNumber) addressObject.buildingNumber=buildingNumber;
-    if(floorNumber) addressObject.floorNumber=floorNumber;
-    if(addressLabel) addressObject.addressLabel=addressLabel;
-    if(notes) addressObject.notes=notes;
-    if(streetName) addressObject.streetName=streetName;
-    
-    if(Object.keys(addressObject).length===0) 
-        return res.status(400).json({message:"Please provide at least one field to update"});
+  if (!isAddrecessExist) {
+    return res.status(400).json({ message: "Address not found" });
+  }
+  if (isAddrecessExist.userId.toString() !== user._id.toString()) {
+    return res.status(400).json({
+      message:
+        "this is not your address. you aren't authorized to update this address",
+    });
+  }
 
-    const updatedAddress=await Address.findByIdAndUpdate(addressId,addressObject,{new:true});
-    res.status(200).json({message:"address updated successfully",address:updatedAddress});
-}
+  const addressObject = {};
 
-export const deleteAddress=async(req,res,next)=>{
-    const user = req.user;
-    const {addressId}=req.params;
+  if (country) addressObject.country = country;
+  if (city) addressObject.city = city;
+  if (postalCode) addressObject.postalCode = postalCode;
+  if (buildingNumber) addressObject.buildingNumber = buildingNumber;
+  if (floorNumber) addressObject.floorNumber = floorNumber;
+  if (addressLabel) addressObject.addressLabel = addressLabel;
+  if (notes) addressObject.notes = notes;
+  if (streetName) addressObject.streetName = streetName;
 
-    if(!addressId) 
-        return res.status(400).json({message:"Please provide the address id"});
+  if (Object.keys(addressObject).length === 0) {
+    return res
+      .status(400)
+      .json({ message: "Please provide at least one field to update" });
+  }
 
-    const isAddrecessExist=await Address.findById(addressId);
-    if(!isAddrecessExist) 
-        return res.status(400).json({message:"Address not found"});
-    if(isAddrecessExist.userId.toString()!==user._id.toString() ) 
-        return res.status(400).json({message:"this is not your address. you aren't authorized to delete this address"});
+  const updatedAddress = await Address.findByIdAndUpdate(
+    addressId,
+    addressObject,
+    { new: true }
+  );
+  res
+    .status(200)
+    .json({ message: "address updated successfully", address: updatedAddress });
+};
 
-    await Address.findByIdAndDelete(addressId);
-    res.status(200).json({message:"address deleted successfully"});
-}
+export const deleteAddress = async (req, res, _next) => {
+  const user = req.user;
+  const { addressId } = req.params;
 
-export const getDefaultAddress=async(req,res,next)=>{
-    const user = req.user;
-    const defaultAddress = user.addresses.filter(address => address.isDefault === true)[0];
+  if (!addressId) {
+    return res.status(400).json({ message: "Please provide the address id" });
+  }
 
-    res.status(200).json({message:"default address fetched successfully",defaultAddress});
-}
+  const isAddrecessExist = await Address.findById(addressId);
+  if (!isAddrecessExist) {
+    return res.status(400).json({ message: "Address not found" });
+  }
+  if (isAddrecessExist.userId.toString() !== user._id.toString()) {
+    return res.status(400).json({
+      message:
+        "this is not your address. you aren't authorized to delete this address",
+    });
+  }
 
-export const setAsDefaultAddress=async(req,res,next)=>{
-    const user = req.user;
-    const {addressId}=req.params;
+  await Address.findByIdAndDelete(addressId);
+  res.status(200).json({ message: "address deleted successfully" });
+};
 
-    if(!addressId) 
-        return res.status(400).json({message:"Please provide the address id"});
+export const getDefaultAddress = async (req, res, _next) => {
+  const user = req.user;
+  const defaultAddress = user.addresses.filter(
+    (address) => address.isDefault === true
+  )[0];
 
-    const isAddrecessExist=await Address.findById(addressId);
-    if(!isAddrecessExist) 
-        return res.status(400).json({message:"Address not found"});
-    if(isAddrecessExist.userId.toString()!==user._id.toString() ) 
-        return res.status(400).json({message:"this is not your address. you aren't authorized to update this address"});
-    
-    await Address.updateMany({ userId: user._id, isDefault: true }, { $set: { isDefault: false } });
-    await Address.findByIdAndUpdate(addressId, { $set: { isDefault: true } });
+  res
+    .status(200)
+    .json({ message: "default address fetched successfully", defaultAddress });
+};
 
-    res.status(200).json({message:"address set as default successfully"});
-}
+export const setAsDefaultAddress = async (req, res, _next) => {
+  const user = req.user;
+  const { addressId } = req.params;
+
+  if (!addressId) {
+    return res.status(400).json({ message: "Please provide the address id" });
+  }
+
+  const isAddrecessExist = await Address.findById(addressId);
+  if (!isAddrecessExist) {
+    return res.status(400).json({ message: "Address not found" });
+  }
+  if (isAddrecessExist.userId.toString() !== user._id.toString()) {
+    return res.status(400).json({
+      message:
+        "this is not your address. you aren't authorized to update this address",
+    });
+  }
+
+  await Address.updateMany(
+    { userId: user._id, isDefault: true },
+    { $set: { isDefault: false } }
+  );
+  await Address.findByIdAndUpdate(addressId, { $set: { isDefault: true } });
+
+  res.status(200).json({ message: "address set as default successfully" });
+};

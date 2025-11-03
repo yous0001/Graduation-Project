@@ -19,6 +19,8 @@ export async function dropTestCollections() {
   for (const collection of collections) {
     try {
       await collection.deleteMany({});
-    } catch {}
+    } catch (error) {
+      console.error("Error dropping test collections:", error);
+    }
   }
 }

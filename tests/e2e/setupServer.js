@@ -1,13 +1,18 @@
 let baseURL;
 let readyPromise;
 
-async function waitForServerReady(path = "/unknown-endpoint", timeoutMs = 8000) {
+async function waitForServerReady(
+  path = "/unknown-endpoint",
+  timeoutMs = 8000
+) {
   const start = Date.now();
   while (Date.now() - start < timeoutMs) {
     try {
       const res = await fetch(`${baseURL}${path}`);
       if (res.status === 404 || res.status === 200) return true;
-    } catch {}
+    } catch (error) {
+      console.error("Error waiting for server ready:", error);
+    }
     await new Promise((r) => setTimeout(r, 200));
   }
   return false;

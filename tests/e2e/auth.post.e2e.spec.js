@@ -7,7 +7,6 @@ const uniqueEmail = `reciplore0@gmail.com`;
 const password = "Passw0rd!234";
 
 let refreshToken;
-let accessToken;
 
 beforeAll(async () => {
   process.env.NODE_ENV = "test";
@@ -61,7 +60,6 @@ describe("E2E: Auth mutation flow", () => {
     expect(verifyJson.accessToken).toBeTruthy();
     expect(verifyJson.refreshToken).toBeTruthy();
 
-    accessToken = verifyJson.accessToken;
     refreshToken = verifyJson.refreshToken;
   });
 

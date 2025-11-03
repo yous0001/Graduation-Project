@@ -70,8 +70,8 @@ export const deleteIngredient=async (req, res,next) => {
     if(!ingredient)return next(new Error("ingredient not found", { cause: 404 }));
 
     const data=await cloudinaryConfig().uploader.destroy(ingredient.image.public_id)
-    if(data.result!='ok')
-        return next(new Error("Couldn't delete image", { cause: 400 }));
+    if(data.result!=='ok')
+        {return next(new Error("Couldn't delete image", { cause: 400 }));}
     const deleteingredient = await Ingredient.findByIdAndDelete(id);
     if (!deleteingredient) return next(new Error("Ingredient not found", { cause: 404 }));
 
@@ -203,7 +203,7 @@ export const addMealDBIngredients = async (req, res, next) => {
         }
 };
 
-export const getIngredients=async(req,res,next)=>{
+export const getIngredients=async(req,res,_next)=>{
     const user=req.user;
     const apiFeatures = new ApiFeatures(Ingredient, req.query)
     .filter()
@@ -236,7 +236,7 @@ const ingredientIDsInCart = new Set(
 );
 
 for (let i = 0; i < ingredients.docs.length; i++) {
-    let ingObj = ingredients.docs[i].toObject();
+    const ingObj = ingredients.docs[i].toObject();
     ingObj.inCart = ingredientIDsInCart.has(ingObj._id.toString());
     ingredients.docs[i] = ingObj;
 }
@@ -247,7 +247,7 @@ res.status(200).json({
 });
 }
 
-export const getSpecificIngredient=async(req,res,next)=>{
+export const getSpecificIngredient=async(req,res,_next)=>{
     const {name,slug}=req.query;
 
     const SearchQuery={};
@@ -260,7 +260,7 @@ export const getSpecificIngredient=async(req,res,next)=>{
         }]
     );
 
-    if(!ingredient) return next(new Error("Ingredient not found", {cause:404}));
+    if(!ingredient) return _next(new Error("Ingredient not found", {cause:404}));
 
     res.status(200).json({success:true,ingredient});
 }

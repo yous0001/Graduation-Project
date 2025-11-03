@@ -8,7 +8,7 @@ export default {
     name: { min: 2, max: 100 },
     description: { min: 10, max: 1000 },
     title: { min: 3, max: 200 },
-    address: { min: 10, max: 500 }
+    address: { min: 10, max: 500 },
   },
 
   // Numeric constraints
@@ -20,7 +20,7 @@ export default {
     discount: { min: 0, max: 100 },
     age: { min: 13, max: 120 },
     weight: { min: 30, max: 300 },
-    height: { min: 100, max: 250 }
+    height: { min: 100, max: 250 },
   },
 
   // Array constraints
@@ -29,26 +29,26 @@ export default {
     instructions: { min: 1, max: 20 },
     recipeInstructions: { min: 7, max: 10 }, // For AI-generated recipes
     tags: { min: 0, max: 10 },
-    images: { min: 0, max: 5 }
+    images: { min: 0, max: 5 },
   },
 
   // Regular expressions
   patterns: {
     email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-    phone: /^\+?[\d\s\-\(\)]{10,15}$/,
+    phone: /^\+?[\d\s\-()]{10,15}$/,
     url: /^https?:\/\/.+/,
     slug: /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
-    color: /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/
+    color: /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/,
   },
 
   // Default error messages
   messages: {
-    required: 'This field is required',
-    email: 'Please enter a valid email address',
-    minLength: 'Must be at least {min} characters long',
-    maxLength: 'Must not exceed {max} characters',
-    min: 'Must be at least {min}',
-    max: 'Must not exceed {max}',
-    pattern: 'Invalid format'
-  }
+    required: "This field is required",
+    email: "Please enter a valid email address",
+    minLength: "Must be at least {min} characters long",
+    maxLength: "Must not exceed {max} characters",
+    min: "Must be at least {min}",
+    max: "Must not exceed {max}",
+    pattern: "Invalid format",
+  },
 };

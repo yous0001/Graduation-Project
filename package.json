@@ -9,7 +9,9 @@
     "dev": "nodemon index.js",
     "test": "bun test",
     "test:spec": "bun test --filter .spec",
-    "test:e2e": "bun test --filter e2e"
+    "test:e2e": "bun test --filter e2e",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
   },
   "keywords": [],
   "author": "",
@@ -44,6 +46,9 @@
     "stripe": "^18.2.0"
   },
   "devDependencies": {
+    "@eslint/js": "^9.11.0",
+    "eslint": "^9.11.0",
+    "globals": "^15.11.0",
     "nodemon": "^3.1.7"
   },
   "engines": {

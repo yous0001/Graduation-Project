@@ -2,14 +2,13 @@ import mongoose from "mongoose";
 
 const db_connection = async () => {
   const isTestEnv = process.env.NODE_ENV === "test";
-  const uri =
-    isTestEnv
-      ? process.env.DB_TEST
-      : process.env.CONNECTION_URL_DEPLOY || process.env.CONNECTION_URL_LOCAL;
+  const uri = isTestEnv
+    ? process.env.DB_TEST
+    : process.env.CONNECTION_URL_DEPLOY || process.env.CONNECTION_URL_LOCAL;
 
   await mongoose
     .connect(uri)
-    .then((res) => console.log(`db connected successfully`))
+    .then(() => console.log(`db connected successfully`))
     .catch((err) => console.log(`db connection failed`, err));
 };
 

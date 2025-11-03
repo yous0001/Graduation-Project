@@ -6,7 +6,7 @@ export const addBanner=async(req,res,next)=>{
     const user = req.user;
 
     if(!section)
-        return next(new Error('Please select a section',{cause:400}));
+        {return next(new Error('Please select a section',{cause:400}));}
 
     const isBannerExists= await Banner.findOne({ section });
     if (isBannerExists) {
@@ -33,7 +33,7 @@ export const addBanner=async(req,res,next)=>{
 export const deleteBanner=async(req,res,next)=>{
     const {id}=req.params;
     if(!id)
-        return next(new Error('Please provide banner id',{cause:400}));
+        {return next(new Error('Please provide banner id',{cause:400}));}
     const isBannerExists= await Banner.findById(id);
     if (!isBannerExists) {
         return res.status(404).json({ success: false, message: "banner not found" });
@@ -51,7 +51,7 @@ export const deleteBanner=async(req,res,next)=>{
 export const getBanners=async(req,res,next)=>{
     const {section}=req.params;
     if(!section)
-        return next(new Error('Please select a section',{cause:400}));
+        {return next(new Error('Please select a section',{cause:400}));}
     const banners=await Banner.findOne({section}).select('-addedBy -Images._id -Images.public_id');
     return res.status(200).json({success:true,banners})
 }
@@ -60,7 +60,7 @@ export const updateBanner=async(req,res,next)=>{
     const {id}=req.params;
     const user = req.user;
     if(!id)
-        return next(new Error('Please provide banner id',{cause:400}));
+        {return next(new Error('Please provide banner id',{cause:400}));}
     const isBannerExists= await Banner.findById(id);
     if (!isBannerExists) {
         return res.status(404).json({ success: false, message: "banner not found" });

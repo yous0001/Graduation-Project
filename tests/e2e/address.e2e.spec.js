@@ -33,7 +33,7 @@ beforeAll(async () => {
     { email: uniqueEmail },
     { $set: { isEmailVerified: true } }
   );
-  const loginRes = await fetch(`${getBaseURL()}/auth/login`, {
+  await fetch(`${getBaseURL()}/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email: uniqueEmail, password }),

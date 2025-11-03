@@ -3,7 +3,6 @@ import { uploadFile } from "../../utils/cloudinary.utils.js";
 import Recipe from "../../../DB/models/recipe.model.js";
 import Country from './../../../DB/models/country.model.js';
 import Category from './../../../DB/models/category.model.js';
-import { nanoid } from "nanoid";
 import Ingredient from './../../../DB/models/ingredient.model.js';
 import axios from "axios";
 import chalk from "chalk";
@@ -43,7 +42,7 @@ export const addRecipe=async (req,res,next)=>{
     if(!isCategoryExists){
         return next(new Error('category not found',{cause:404}));
     }
-    for(let x of ingredients){
+    for(const x of ingredients){
         const isingreidentExists=await Ingredient.findById(x.ingredient)
         if(!isingreidentExists){
             return next(new Error('Ingredient not found',{cause:404}));
@@ -210,13 +209,13 @@ export const addMealDBRecipes = async (req, res, next) => {
 
 
 
-export const updateRecipe=async(req,res,next)=>{
+export const updateRecipe=async(req,res,_next)=>{
     const {recipeID}=req.params
     const {name,description,directions,tags,videoLink}=req.body
     const user = req.user;
     
     const recipe=await Recipe.findById(recipeID)
-    if(!recipe) return next(new Error('Recipe not found',{cause:404}))
+    if(!recipe) return _next(new Error('Recipe not found',{cause:404}))
     
     if(name) {
         recipe.name=name
@@ -234,7 +233,7 @@ export const updateRecipe=async(req,res,next)=>{
 }
 
 
-export const getRecipes=async(req,res,next)=>{
+export const getRecipes=async(req,res,_next)=>{
     const user=req.user;
     const apiFeatures = new ApiFeatures(Recipe, req.query)
             .filter()
@@ -265,7 +264,7 @@ export const getRecipes=async(req,res,next)=>{
         if(!user) return res.status(200).json({success:true,recipes})
         
         for (let i = 0; i < recipes.docs.length; i++) {
-            let recipeObj = recipes.docs[i].toObject(); 
+            const recipeObj = recipes.docs[i].toObject(); 
             recipeObj.isFavourite = user.favoriteRecipes.includes(recipeObj._id.toString());
             recipes.docs[i] = recipeObj; 
         }
@@ -275,16 +274,16 @@ export const getRecipes=async(req,res,next)=>{
         });
     }
 
-export const viewRecipe=async(req,res,next)=>{
+export const viewRecipe=async(req,res,_next)=>{
     const {recipeID}=req.params
     const recipe=await Recipe.findByIdAndUpdate(recipeID, { $inc: { views: 1 } }, { new: true });
-    if(!recipe) return next(new Error('Recipe not found',{cause:404}))
+    if(!recipe) return _next(new Error('Recipe not found',{cause:404}))
     res.status(200).json({success:true,message:"Recipe viewed successfully",recipe})
 }
 
-export const getSpecificRecipe=async(req,res,next)=>{
+export const getSpecificRecipe=async(req,res,_next)=>{
     const {name,slug}=req.query
-    if(!name && !slug) return next(new Error('Please provide name or slug',{cause:400}))
+    if(!name && !slug) return _next(new Error('Please provide name or slug',{cause:400}))
     const searchObj={}
     if(name) searchObj.name=name
     if(slug) searchObj.slug=slug
@@ -308,6 +307,6 @@ export const getSpecificRecipe=async(req,res,next)=>{
                 select:"username profileImage.secure_url -_id"
             }]
             );
-    if(!recipe) return next(new Error('Recipe not found',{cause:404}))
+    if(!recipe) return _next(new Error('Recipe not found',{cause:404}))
     res.status(200).json({success:true,message:"Recipe found successfully",recipe})
 }

@@ -55,11 +55,11 @@ export class ApiFeatures {
     }
 
     filter() {
-        let queryObj = { ...this.queryString };
+        const queryObj = { ...this.queryString };
         const excludedFields = ["sort", "page", "limit", "fields", "search", "populate"];
         excludedFields.forEach((el) => delete queryObj[el]);
 
-        for (let key in queryObj) {
+        for (const key in queryObj) {
             if (queryObj[key] === null || queryObj[key] === undefined || queryObj[key] === ""|| queryObj[key] === 'null') {
                 delete queryObj[key];
             }
