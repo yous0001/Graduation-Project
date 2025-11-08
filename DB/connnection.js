@@ -1,3 +1,4 @@
+
 import mongoose from "mongoose";
 
 const db_connection = async () => {
@@ -13,3 +14,4 @@ const db_connection = async () => {
 };
 
 export default db_connection;
+

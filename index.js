@@ -45,19 +45,22 @@ app.use("/order", orderRouter);
 app.use("/address", addressRouter);
 app.use("/coupon", couponRouter);
 
-app.use("*", (req, res, _next) => {
-  res.status(404).json({ success: false, message: "API endpoint not found" });
-});
 app.use(globalResponse);
 db_connection();
 
 app.get("/test", (req, res) => {
   res.json({ message: "test endpoint" });
 });
+
 app.get("/test-upload", async (req, res) => {
   const result = await cloudinaryConfig().api.ping();
   res.json(result);
 });
+
+app.use("*", (req, res, _next) => {
+  res.status(404).json({ success: false, message: "API endpoint not found" });
+});
+
 app.listen(port, () => {
   console.log(`app is running on port ${port}`);
 });
