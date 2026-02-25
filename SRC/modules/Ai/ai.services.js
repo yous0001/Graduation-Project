@@ -14,10 +14,10 @@ import validationConfig from "../Services/options/validation.config.js";
 // Initialize the Gemini API client
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-// Select the model (e.g., gemini-1.5-flash for text generation)
+// Select the model (e.g., gemini-2.5-flash for text generation)
 const model = genAI.getGenerativeModel({
-  model: "gemini-1.5-flash",
-  apiVersion: "v1beta",
+  model: "gemini-2.5-flash",
+  apiVersion: "v1",
 });
 
 //under development
@@ -1011,7 +1011,7 @@ export async function generateDietPlan({
   // Initialize Gemini model
   let genAI = new GoogleGenerativeAI(apiKey);
   let model = genAI.getGenerativeModel({
-    model: "gemini-1.5-flash",
+    model: "gemini-2.5-flash",
     safetySettings: [
       {
         category: HarmCategory.HARM_CATEGORY_HARASSMENT,
@@ -1215,7 +1215,7 @@ export async function generateDietPlan({
             console.log(`Switching to GEMINI_API_KEY${currentKeyIndex}`);
             genAI = new GoogleGenerativeAI(apiKey);
             model = genAI.getGenerativeModel({
-              model: "gemini-1.5-flash",
+              model: "gemini-2.5-flash",
               safetySettings: [
                 {
                   category: HarmCategory.HARM_CATEGORY_HARASSMENT,
