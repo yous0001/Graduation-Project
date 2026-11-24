@@ -239,19 +239,38 @@ export const searchWithAi = async (req, res) => {
         .json({ success: false, message: "Ingredients is required" });
     }
 
-    // Call Flask API to get initial recommendations
-    const { data: response } = await axios.post(
-      aiConfig.endpoints.flask.recommend,
-      {
-        ingredients,
-        start,
-        count,
+    // Call Flask API with fallback to database/AI recommendations
+    let recommendations = [];
+    try {
+      const { data: response } = await axios.post(
+        aiConfig.endpoints.flask.recommend,
+        {
+          ingredients,
+          start,
+          count,
+        },
+        { timeout: 3000 }
+      );
+      recommendations = response.recommendations || [];
+    } catch (flaskErr) {
+      console.warn("Flask recommendation service unavailable, falling back:", flaskErr.message);
+      // Fallback: search existing recipes in database matching ingredients or query
+      const terms = (typeof ingredients === 'string' ? ingredients.split(/[, ]+/) : [ingredients]).filter(Boolean);
+      const searchRegex = terms.length ? terms.join("|") : "";
+      const matchedDbRecipes = searchRegex ? await Recipe.find({
+        $or: [
+          { name: { $regex: searchRegex, $options: "i" } },
+          { description: { $regex: searchRegex, $options: "i" } }
+        ]
+      }).limit(6).lean() : [];
+
+      if (matchedDbRecipes.length > 0) {
+        recommendations = matchedDbRecipes.map((r) => ({
+          title: r.name,
+          ingredients: r.ingredients?.map((i) => i.amount || "") || [],
+        }));
       }
-    );
-
-    //console.log('Response from Flask API fetchRecommendations:', response.recommendations);
-
-    let recommendations = response.recommendations || [];
+    }
 
     recommendations = recommendations.map((r) => ({
       ...r,

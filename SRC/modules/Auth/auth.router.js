@@ -26,6 +26,7 @@ router.put("/update-user",auth(),validationMiddleware(authSchemas.updateUserSche
 router.post("/forget-password", validationMiddleware(authSchemas.forgetPasswordSchema),expressAsyncHandler(authController.forgetPassword))
 router.post("/reset-password/:token",validationMiddleware(authSchemas.resetPasswordSchema), expressAsyncHandler(authController.resetPassword))
 
+router.post("/toggle-favourite/:recipeID",auth(),validationMiddleware(authSchemas.toggleFavouriteSchema),expressAsyncHandler(authController.toogleFavourite))
 router.post("/toogle-favourite/:recipeID",auth(),validationMiddleware(authSchemas.toggleFavouriteSchema),expressAsyncHandler(authController.toogleFavourite))
 router.get("/get-favourite",auth(),expressAsyncHandler(authController.getFavouriteRecipes))
 

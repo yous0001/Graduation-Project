@@ -243,15 +243,33 @@ export const checkCouponCode = async (req, res) => {
 export const cancelOrder = async (req, res, next) => {
   const { id } = req.params;
   const userId = req.user._id;
-  const order = await Order.findOneAndUpdate(
-    { _id: id },
-    { orderStatus: orderStatuses.cancelled, updatedBy: userId },
-    { new: true }
-  );
-  if (!order) return next(new Error("order not found", { cause: 404 }));
+  const order = await Order.findById(id);
+  if (!order) return next(new Error("Order not found", { cause: 404 }));
+
+  if (order.userId.toString() !== userId.toString() && req.user.role !== "Admin") {
+    return next(new Error("Unauthorized to cancel this order", { cause: 403 }));
+  }
+
+  if (order.orderStatus === orderStatuses.cancelled) {
+    return res.status(400).json({ success: false, message: "Order is already cancelled" });
+  }
+
+  // Restore ingredient stock
+  for (const item of order.items) {
+    await Ingredient.updateOne(
+      { _id: item.ingredientId },
+      { $inc: { stock: item.quantity, sellings: -item.quantity } }
+    );
+  }
+
+  order.orderStatus = orderStatuses.cancelled;
+  order.cancelledBy = userId;
+  order.cancelledAt = new Date();
+  await order.save();
+
   return res
     .status(200)
-    .json({ success: true, message: "order canceled", order });
+    .json({ success: true, message: "Order cancelled successfully", order });
 };
 
 export const getOrders = async (req, res) => {

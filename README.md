@@ -1,76 +1,45 @@
-# Recipe Recommendation System
+# 🍳 Reciplore — Backend API
 
-## Project Description
-This project is a recipe recommendation system designed to help users discover new recipes based on the ingredients they have. The system uses AI to suggest recipes, allowing users to explore different cuisines and meal ideas efficiently.
+REST API for the Reciplore Recipe Recommendation and Culinary Marketplace platform. Built with Node.js, Express, and MongoDB.
 
-## Features
-- AI model to predict and recommend recipes.
-- Ingredient-based recipe search.
-- Categorization by cuisine and meal type.
-- User reviews and ratings for recipes.
-- Shopping list for required ingredients.
-- Secure payment options for purchasing ingredients.
-- Favorite recipes list for users.
-- Coupons for ingredient discounts.
+---
 
-## Installation
+## ⚡ Enhancements & Optimizations
+
+- **Database Indexing**: Compound indexes on `Recipe`, `Ingredient`, `Order`, `Review`, and `Cart` collections eliminating full-scan bottlenecks (`COLLSCAN`).
+- **HTTP Compression**: Gzip/deflate compression via `compression` middleware.
+- **Connection Pooling**: Mongoose connection pooling with `maxPoolSize: 25` and reconnect safeguards.
+- **Cart & Order Bug Fixes**:
+  - Fixed `ObjectId === string` comparison in Cart controller.
+  - Fixed inventory over-decrement in `order.model.js` by scoping stock decrements strictly to `this.isNew`.
+  - Added stock restoration on order cancellation.
+  - Made `estimatedDeliveryDate` dynamic.
+- **Regex Sanitization**: Fixed `api-features.js` keyword and ObjectId substring corruption with word boundaries.
+- **Express Middleware Flow**: Corrected route ordering, 404 handler, and `globalResponse` error handler preventing `ERR_HTTP_HEADERS_SENT`.
+- **Flexible Auth**: Support for standard `Authorization: Bearer <token>` alongside `accessToken_`, plus optional auth handling so unauthenticated guests can read recipes, market items, categories, and reviews.
+- **AI Service Hardening**: Added 6-second timeout to Hugging Face image generation and fallback database search.
+
+---
+
+## 🚀 Getting Started
 
 ### Prerequisites
-Ensure you have the following installed:
-- Node.js
-- MongoDB
-- npm or yarn
+- Node.js (v18+ recommended, v22 tested)
+- MongoDB instance (Local or MongoDB Atlas)
 
-### Steps to Set Up
-1. **Clone the Repository**
+### Setup
+1. Install dependencies:
    ```bash
-   git clone https://github.com/yous0001/Graduation-Project.git
-   cd Graduation-Project
-   ```
-
-2. **Install Dependencies**
-   ```bash
+   pnpm install
+   # or
    npm install
    ```
-   or
+2. Copy environment file and configure variables:
    ```bash
-   yarn install
+   cp .env.example .env
    ```
-
-3. **Set Up Environment Variables**
-   Create a `.env` file in the root directory and add:
-   ```
-   DATABASE_URL=your_database_url
-   API_KEY=your_api_key
-   ```
-
-4. **Start the Application**
+3. Start development server:
    ```bash
-   npm start
+   npm run dev
    ```
-   or
-   ```bash
-   yarn start
-   ```
-
-## Usage
-- Access the application at `http://localhost:3000`.
-- Search for recipes by entering available ingredients.
-- Browse and filter recipes by category or cuisine.
-- Read user reviews and submit ratings.
-- Save favorite recipes for later use.
-- Purchase missing ingredients through the platform.
-
-## Contributing
-1. Fork the repository.
-2. Create a new branch (`git checkout -b feature-branch`).
-3. Commit your changes (`git commit -m 'Add new feature'`).
-4. Push to the branch (`git push origin feature-branch`).
-5. Open a pull request.
-
-## License
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Acknowledgements
-- Thanks to the team for their dedication and effort.
-- Special appreciation to our mentors and professors for guidance.
+4. Health check endpoint: `http://localhost:5000/health`

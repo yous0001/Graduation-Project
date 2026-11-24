@@ -42,5 +42,9 @@ const reviewSchema = new mongoose.Schema({
 timestamps: true,
 });
 
+reviewSchema.index({ recipe: 1, createdAt: -1 });
+reviewSchema.index({ ingredient: 1, createdAt: -1 });
+reviewSchema.index({ userID: 1 });
+
 const Review = mongoose.models.Review || model('Review',reviewSchema)
 export default Review;

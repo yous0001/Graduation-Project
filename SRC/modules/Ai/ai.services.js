@@ -379,10 +379,11 @@ export async function generateImageForGemini(recipeJson, retries = 2) {
       // Retry for sleeping model (up to 3 attempts)
       for (let attempt = 0; attempt < 3; attempt++) {
         try {
-          // Call Hugging Face Stable Diffusion API
+          // Call Hugging Face Stable Diffusion API with a 6-second timeout
           const response = await axios.post(API_URL, data, {
             headers,
             responseType: "arraybuffer",
+            timeout: 6000,
           });
 
           // Log response status for debugging

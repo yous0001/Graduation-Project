@@ -95,6 +95,12 @@ const ingredientSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// Performance Indexes for Market listing, sorting and filtering
+ingredientSchema.index({ appliedPrice: 1 });
+ingredientSchema.index({ stock: 1 });
+ingredientSchema.index({ Average_rating: -1 });
+ingredientSchema.index({ sellings: -1 });
+
 const Ingredient =
   mongoose.models.Ingredient || model("Ingredient", ingredientSchema);
 export default Ingredient;

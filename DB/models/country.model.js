@@ -3,7 +3,9 @@ import mongoose, { model } from "mongoose";
 const countrySchema = new mongoose.Schema({
     name: {
         type: String,
-        required: true
+        required: true,
+        trim: true,
+        unique: true
     },
     description: {
         type: String

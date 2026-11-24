@@ -88,5 +88,14 @@ const recipeSchema = new mongoose.Schema({
     }
 },{timestamps:true});
 
+// Performance Indexes for high-frequency queries and sorting
+recipeSchema.index({ category: 1, views: -1 });
+recipeSchema.index({ country: 1, views: -1 });
+recipeSchema.index({ views: -1, _id: 1 });
+recipeSchema.index({ Average_rating: -1 });
+recipeSchema.index({ createdAt: -1 });
+recipeSchema.index({ name: 1 });
+recipeSchema.index({ "ingredients.ingredient": 1 });
+
 const Recipe = mongoose.models.Recipe || model('Recipe',recipeSchema)
 export default Recipe;

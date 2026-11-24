@@ -24,7 +24,7 @@ router.put('/update/:id',
 router.post('/add-mealDB',
         auth([systemRoles.ADMIN]),
         expressAsyncHandler(ingredientController.addMealDBIngredients))
-router.get('/list',auth(),
+router.get('/list', auth(undefined, true),
         expressAsyncHandler(ingredientController.getIngredients))
 router.get('/get',
         expressAsyncHandler(ingredientController.getSpecificIngredient))

@@ -29,11 +29,16 @@ const cartSchema = new mongoose.Schema({
     },
 },{timestamps:true});
 
-cartSchema.post("save",async (doc)=>{
-    if(doc.ingredients.length===0){
-        console.log("deleteing cart because no ingredients in it");
-        await Cart.deleteOne({userID: doc.userID})
+cartSchema.index({ userID: 1 });
+
+cartSchema.post("save", async function (doc) {
+    if (doc && doc.ingredients && doc.ingredients.length === 0) {
+        try {
+            await doc.deleteOne();
+        } catch (err) {
+            console.error("Error clearing empty cart:", err.message);
+        }
     }
-})
+});
 const Cart = mongoose.models.Cart || model('Cart',cartSchema)
 export default Cart;

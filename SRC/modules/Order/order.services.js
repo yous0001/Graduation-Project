@@ -92,9 +92,9 @@ export const checkCouponDiscount = async(couponCode, userId, total)=>{
                 error.statusCode = orderConfig.errorCodes.invalidRequest;
                 throw error;
             }
-            // If we reach here, maxUsage must be the issue
-            if (existingCoupon.usedBy.length >= existingCoupon.maxUsage) {
-                const error = new Error("Coupon is used by max users");
+            // If we reach here, usageLimit must be the issue
+            if (existingCoupon.usageLimit && existingCoupon.usedBy.length >= existingCoupon.usageLimit) {
+                const error = new Error("Coupon usage limit reached");
                 error.statusCode = orderConfig.errorCodes.invalidRequest;
                 throw error;
             }

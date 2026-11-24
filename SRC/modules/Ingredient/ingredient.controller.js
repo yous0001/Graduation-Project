@@ -218,33 +218,34 @@ export const getIngredients=async(req,res,_next)=>{
     )
     .paginate();
 
-const ingredients = await apiFeatures.execute();
-const cart=await Cart.findOne({userID:user._id})
-if(!cart){
+    const ingredients = await apiFeatures.execute();
+    if (!user) {
+        ingredients.docs = ingredients.docs.map(ing => {
+            const ingObj = ing.toObject ? ing.toObject() : { ...ing };
+            ingObj.inCart = false;
+            return ingObj;
+        });
+        return res.status(200).json({
+            success: true,
+            ingredients
+        });
+    }
+
+    const cart = await Cart.findOne({ userID: user._id });
+    const ingredientIDsInCart = new Set(
+        cart ? cart.ingredients.map(item => item.IngredientID ? item.IngredientID.toString() : "") : []
+    );
+
     ingredients.docs = ingredients.docs.map(ing => {
-        const ingObj = ing.toObject();
-        ingObj.inCart = false;
+        const ingObj = ing.toObject ? ing.toObject() : { ...ing };
+        ingObj.inCart = ingredientIDsInCart.has(ingObj._id.toString());
         return ingObj;
     });
-    return res.status(200).json({
+
+    res.status(200).json({
         success: true,
         ingredients
     });
-}
-const ingredientIDsInCart = new Set(
-    cart.ingredients.map(item => item.IngredientID.toString())
-);
-
-for (let i = 0; i < ingredients.docs.length; i++) {
-    const ingObj = ingredients.docs[i].toObject();
-    ingObj.inCart = ingredientIDsInCart.has(ingObj._id.toString());
-    ingredients.docs[i] = ingObj;
-}
-
-res.status(200).json({
-    success: true,
-    ingredients
-});
 }
 
 export const getSpecificIngredient=async(req,res,_next)=>{

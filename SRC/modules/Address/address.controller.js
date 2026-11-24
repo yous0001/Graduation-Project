@@ -134,7 +134,10 @@ export const deleteAddress = async (req, res, _next) => {
   }
 
   await Address.findByIdAndDelete(addressId);
-  res.status(200).json({ message: "address deleted successfully" });
+  await User.findByIdAndUpdate(user._id, {
+    $pull: { addresses: addressId },
+  });
+  res.status(200).json({ success: true, message: "address deleted successfully" });
 };
 
 export const getDefaultAddress = async (req, res, _next) => {

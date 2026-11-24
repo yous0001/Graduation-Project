@@ -265,11 +265,13 @@ export const getReviews = async (req, res) => {
     select: "username email profileImage.secure_url",
   });
   const reviewsWithCounts = reviews.map((review) => {
-    const userIdStr = user._id.toString();
-    const hasLiked =
-      review.likes?.some((id) => id.toString() === userIdStr) || false;
-    const hasDisliked =
-      review.dislikes?.some((id) => id.toString() === userIdStr) || false;
+    const userIdStr = user?._id ? user._id.toString() : null;
+    const hasLiked = userIdStr
+      ? review.likes?.some((id) => id.toString() === userIdStr) || false
+      : false;
+    const hasDisliked = userIdStr
+      ? review.dislikes?.some((id) => id.toString() === userIdStr) || false
+      : false;
     return {
       ...review.toObject(),
       likesCount: review.likes?.length || 0,
@@ -279,5 +281,5 @@ export const getReviews = async (req, res) => {
   });
   res
     .status(200)
-    .json({ success: true, reviews: reviewsWithCounts, user: user._id });
+    .json({ success: true, reviews: reviewsWithCounts, user: user?._id || null });
 };

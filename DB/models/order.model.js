@@ -56,7 +56,7 @@ const orderSchema = new mongoose.Schema({
   estimatedDeliveryDate: {
     type: Date,
     required: true,
-    default: Date.now() + 3 * 60 * 60 * 1000,
+    default: () => new Date(Date.now() + 3 * 60 * 60 * 1000),
   },
   total: {
     type: Number,
@@ -98,12 +98,17 @@ const orderSchema = new mongoose.Schema({
   },
 });
 
-orderSchema.post("save", async function () {
-  for (const ingredient of this.items) {
-    await Ingredient.updateOne(
-      { _id: ingredient.ingredientId },
-      { $inc: { stock: -ingredient.quantity } }
-    );
+orderSchema.index({ userId: 1, createdAt: -1 });
+orderSchema.index({ orderStatus: 1 });
+
+orderSchema.pre("save", async function () {
+  if (this.isNew) {
+    for (const ingredient of this.items) {
+      await Ingredient.updateOne(
+        { _id: ingredient.ingredientId },
+        { $inc: { stock: -ingredient.quantity, sellings: ingredient.quantity } }
+      );
+    }
   }
 });
 const Order = mongoose.models.Order || model("Order", orderSchema);

@@ -36,21 +36,23 @@
 import apiConfig from '../modules/Services/options/api.config.js';
 
 export class ApiFeatures {
-    constructor(mongooseQuery, queryString) {
+    constructor(mongooseQuery, queryString = {}) {
         this.mongooseQuery = mongooseQuery;
         this.queryString = queryString;
         this.queryFilters = {};
         this.options = {
-            page: parseInt(queryString.page) || 1,
-            limit: parseInt(queryString.limit) || apiConfig.response.defaultPageSize,
+            page: Math.max(1, parseInt(queryString.page, 10) || 1),
+            limit: parseInt(queryString.limit, 10) || apiConfig.response.defaultPageSize || 12,
             select: "-createdAt -updatedAt", // Default fields
             sort: "-views", // Default sorting
             populate: [], // Store populate fields
+            lean: true,
         };
         
         // Enforce maximum page size limit
-        if (this.options.limit > apiConfig.response.maxPageSize) {
-            this.options.limit = apiConfig.response.maxPageSize;
+        const maxLimit = apiConfig.response.maxPageSize || 100;
+        if (this.options.limit > maxLimit) {
+            this.options.limit = maxLimit;
         }
     }
 
@@ -60,25 +62,30 @@ export class ApiFeatures {
         excludedFields.forEach((el) => delete queryObj[el]);
 
         for (const key in queryObj) {
-            if (queryObj[key] === null || queryObj[key] === undefined || queryObj[key] === ""|| queryObj[key] === 'null') {
+            if (queryObj[key] === null || queryObj[key] === undefined || queryObj[key] === "" || queryObj[key] === 'null' || queryObj[key] === 'undefined') {
                 delete queryObj[key];
             }
         }
 
         let queryStr = JSON.stringify(queryObj);
-        queryStr = queryStr.replace(/gt|gte|lt|lte|regex|ne|eq/g, (match) => `$${match}`);
+        // Only replace isolated operators with word boundary to avoid corrupting ObjectIds or words containing 'ne', 'eq', etc.
+        queryStr = queryStr.replace(/\b(gt|gte|lt|lte|regex|ne|eq|in|nin)\b/g, (match) => `$${match}`);
         this.queryFilters = JSON.parse(queryStr);
 
         return this;
     }
+
     condition(conditions) {
-        this.queryFilters = {...this.queryFilters,...conditions};
+        this.queryFilters = { ...this.queryFilters, ...conditions };
         return this;
     }
 
     search() {
-        if (this.queryString.search) {
-            this.queryFilters.name = { $regex: this.queryString.search, $options: "i" };
+        if (this.queryString.search && typeof this.queryString.search === 'string') {
+            const sanitized = this.queryString.search.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            if (sanitized) {
+                this.queryFilters.name = { $regex: sanitized, $options: "i" };
+            }
         }
         return this;
     }
