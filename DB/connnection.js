@@ -1,13 +1,15 @@
 
 import mongoose from "mongoose";
 
-let isConnecting = false;
+let cachedPromise = null;
 
 const db_connection = async () => {
   if (mongoose.connection.readyState === 1) {
     return mongoose.connection;
   }
-  if (isConnecting) return;
+  if (cachedPromise) {
+    return cachedPromise;
+  }
 
   const isTestEnv = process.env.NODE_ENV === "test";
   const uri = isTestEnv
@@ -18,21 +20,20 @@ const db_connection = async () => {
        process.env.MONGODB_URI || 
        "mongodb://127.0.0.1:27017/reciplore");
 
-  try {
-    isConnecting = true;
-    const conn = await mongoose.connect(uri, {
-      maxPoolSize: 25,
-      minPoolSize: 2,
-      serverSelectionTimeoutMS: 5000,
-    });
+  cachedPromise = mongoose.connect(uri, {
+    maxPoolSize: 25,
+    minPoolSize: 2,
+    serverSelectionTimeoutMS: 5000,
+  }).then((conn) => {
     console.log(`MongoDB connected successfully to ${conn.connection.host || "database"}`);
-    isConnecting = false;
     return conn;
-  } catch (err) {
-    isConnecting = false;
+  }).catch((err) => {
+    cachedPromise = null;
     console.error(`MongoDB connection failed: ${err.message}`);
-    // Do not crash process, allow graceful handling
-  }
+    return null;
+  });
+
+  return cachedPromise;
 };
 
 export default db_connection;

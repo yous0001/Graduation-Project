@@ -68,6 +68,12 @@ app.get("/test-upload", async (req, res) => {
   }
 });
 
+// Ensure database connection is ready before handling API routes (essential for serverless cold starts)
+app.use(async (req, res, next) => {
+  await db_connection();
+  next();
+});
+
 // Application API routes
 app.use("/auth", authRouter);
 app.use("/category", categoryRouter);
