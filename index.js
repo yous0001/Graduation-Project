@@ -2,7 +2,8 @@ import express from "express";
 import { config } from "dotenv";
 import compression from "compression";
 import cors from "cors";
-import db_connection from "./DB/connnection.js";
+import mongoose from "mongoose";
+import db_connection, { getLastDbError } from "./DB/connnection.js";
 import authRouter from "./SRC/modules/Auth/auth.router.js";
 import categoryRouter from "./SRC/modules/Category/category.router.js";
 import countryRouter from "./SRC/modules/Country/country.router.js";
@@ -51,8 +52,16 @@ app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
 // Health and monitoring endpoints
-app.get("/health", (req, res) => {
-  res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });
+app.get("/health", async (req, res) => {
+  await db_connection();
+  const readyState = mongoose.connection.readyState;
+  res.status(200).json({
+    status: "ok",
+    dbConnected: readyState === 1,
+    dbState: readyState,
+    dbError: readyState === 1 ? null : getLastDbError(),
+    timestamp: new Date().toISOString(),
+  });
 });
 
 app.get("/test", (req, res) => {
@@ -71,6 +80,13 @@ app.get("/test-upload", async (req, res) => {
 // Ensure database connection is ready before handling API routes (essential for serverless cold starts)
 app.use(async (req, res, next) => {
   await db_connection();
+  if (mongoose.connection.readyState !== 1) {
+    return res.status(503).json({
+      success: false,
+      message: "Database connection unavailable",
+      error: getLastDbError(),
+    });
+  }
   next();
 });
 
