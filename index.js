@@ -79,8 +79,11 @@ app.get("/test-upload", async (req, res) => {
   }
 });
 
-// Ensure database connection is ready before handling API routes (essential for serverless cold starts)
+// Ensure database connection is ready before handling DB-backed API routes
 app.use(async (req, res, next) => {
+  if (req.path.startsWith("/ai/chat")) {
+    return next();
+  }
   await db_connection();
   if (mongoose.connection.readyState !== 1) {
     return res.status(503).json({
