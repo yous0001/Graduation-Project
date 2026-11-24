@@ -1,4 +1,4 @@
-import axios from "axios";
+﻿import axios from "axios";
 import { uploadFileBuffer } from "../../utils/cloudinary.utils.js";
 import {
   GoogleGenerativeAI,
@@ -176,7 +176,7 @@ export async function generateImage(prompt) {
 
     return uploadResult.secure_url;
   } catch (error) {
-    console.error("❌ Error:", error.response?.data || error.message);
+    console.error("â‌Œ Error:", error.response?.data || error.message);
     return aiConfig.defaults.placeholderImage;
   }
 }
@@ -277,7 +277,7 @@ export async function parseMarkdownToJson(markdownText) {
     .map((item) => {
       const text = item.textContent.trim();
       const match = text.match(
-        /^([\d\s/½¼¾⅓⅔⅛⅜⅝⅞]+)?\s*([a-zA-Z\s]+?)(?:\s*\((.*?)\))?$/
+        /^([\d\s/آ½آ¼آ¾â…“â…”â…›â…œâ…‌â…‍]+)?\s*([a-zA-Z\s]+?)(?:\s*\((.*?)\))?$/
       );
       return {
         quantity: match?.[1]?.trim() || "",
@@ -334,76 +334,86 @@ export async function parseMarkdownToJson(markdownText) {
   };
 }
 
-export async function generateImageForGemini(recipeJson, retries = 2) {
-  const API_URL = aiConfig.endpoints.huggingFace.flux;
-  const acceptTypes = ["image/png", "image/jpeg"];
-  // Array of API keys from HUGGINGFACE_TOKEN1 to HUGGINGFACE_TOKEN10
-  const apiKeys = Array.from(
-    { length: aiConfig.limits.maxHuggingFaceKeys },
-    (_, i) => process.env[`HUGGINGFACE_TOKEN${i + 1}`]
-  ).filter(Boolean);
-  let lastError = null;
+export async function generateImageForGemini(recipeJson) {
+  // Build a food-photography prompt. Keep it dish-centric — avoid raw ingredient names
+  // in the description that could confuse the model (e.g. "onion" → cartoon onion).
+  const title = recipeJson.title || "delicious recipe";
 
-  // Validate that at least one API key is available
-  if (apiKeys.length === 0) {
-    console.error("No Hugging Face API keys found in environment variables.");
-    return aiConfig.defaults.placeholderImage;
+  // Use only the first sentence and strip anything after a colon (ingredient lists)
+  const rawDesc = (recipeJson.description || "").split(/[.\n]/)[0].split(":")[0].trim();
+  const safeDesc = rawDesc.length > 10 ? rawDesc : `a beautifully prepared ${title}`;
+
+  const prompt =
+    `Professional food photography of "${title}". ` +
+    `${safeDesc}. ` +
+    `Shot on a clean white marble surface with natural side-lighting, shallow depth of field, ` +
+    `vibrant colours, fresh garnishes, restaurant-quality plating. ` +
+    `Photorealistic, high-resolution, appetizing. ` +
+    `No text, no cartoon, no illustration — real food photograph only.`;
+
+  // Rotate Gemini API keys (GEMINI_API_KEY1 … GEMINI_API_KEY5) — same keys, no new tokens needed
+  const geminiKeys = Array.from(
+    { length: aiConfig.limits.maxGeminiKeys },
+    (_, i) => process.env[`GEMINI_API_KEY${i + 1}`]
+  ).filter(Boolean);
+
+  if (geminiKeys.length === 0) {
+    console.warn("No Gemini API keys found — returning fallback image.");
+    return aiConfig.defaults.defaultRecipeImage || aiConfig.defaults.placeholderImage;
   }
 
-  // Log input for debugging
-  console.log("Recipe:", {
-    title: recipeJson.title,
-    description: recipeJson.description,
-  });
+  const deadline = Date.now() + 7000; // 7 s hard budget (Gemini image ~3-5 s)
 
-  // Original prompt (unchanged)
-  const prompt = `
-        A beautifully plated dish of ${recipeJson.title.toLowerCase()}, showcasing ${recipeJson.description
-    .split(".")[0]
-    .toLowerCase()}. 
-        The presentation is vibrant, appetizing, and professionally styled, with garnishes and a clean, modern background. 
-        Emphasize rich colors, fresh ingredients, and a delicious, inviting look. 
-        One high-quality image for a recipe display.
-    `;
-
-  const data = {
-    inputs: prompt,
-  };
-
-  const deadline = Date.now() + 4500;
-  const maxKeysToTry = Math.min(apiKeys.length, 2);
-
-  // Try up to 2 API keys within a strict 4.5s overall budget so serverless never hits 504
-  for (let keyIndex = 0; keyIndex < maxKeysToTry; keyIndex++) {
+  for (let ki = 0; ki < Math.min(geminiKeys.length, 2); ki++) {
     const remaining = deadline - Date.now();
-    if (remaining < 800) break;
+    if (remaining < 1000) break;
 
-    const apiKey = apiKeys[keyIndex];
     try {
-      const response = await axios.post(API_URL, data, {
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-          Accept: "image/png",
-        },
-        responseType: "arraybuffer",
-        timeout: Math.min(3500, remaining),
+      const imageGenAI = new GoogleGenerativeAI(geminiKeys[ki]);
+      const imageModel = imageGenAI.getGenerativeModel({
+        model: "gemini-2.0-flash-exp-image-generation",
       });
 
-      const uploadResult = await uploadFileBuffer({
-        buffer: response.data,
-        filename: `${recipeJson.title.replace(/\s+/g, "_").toLowerCase()}.png`,
-        folder: `${process.env.UPLOADS_FOLDER || "reciplore"}/chat-recipes`,
-      });
+      const result = await Promise.race([
+        imageModel.generateContent({
+          contents: [{ role: "user", parts: [{ text: prompt }] }],
+          generationConfig: {
+            responseModalities: ["IMAGE", "TEXT"],
+            temperature: 0.4,
+          },
+        }),
+        new Promise((_, reject) =>
+          setTimeout(
+            () => reject(new Error("Gemini image timeout")),
+            Math.min(6000, remaining)
+          )
+        ),
+      ]);
 
-      return uploadResult.secure_url;
-    } catch (error) {
-      lastError = error;
-      console.warn(`Image gen attempt ${keyIndex + 1} skipped:`, error.message);
+      // Extract the inline image part from the response
+      const parts = result?.response?.candidates?.[0]?.content?.parts ?? [];
+      const imagePart = parts.find((p) => p.inlineData?.mimeType?.startsWith("image/"));
+
+      if (imagePart?.inlineData?.data) {
+        const buffer = Buffer.from(imagePart.inlineData.data, "base64");
+        const ext = imagePart.inlineData.mimeType.split("/")[1] || "png";
+        const filename = `${title.replace(/\s+/g, "_").toLowerCase()}_${Date.now()}.${ext}`;
+        const uploadResult = await uploadFileBuffer({
+          buffer,
+          filename,
+          folder: `${process.env.UPLOADS_FOLDER || "reciplore"}/chat-recipes`,
+        });
+        console.log("✅ Gemini image generated for:", title);
+        return uploadResult.secure_url;
+      }
+
+      console.warn(`Gemini key ${ki + 1}: no image part in response — trying next key.`);
+    } catch (err) {
+      console.warn(`Gemini image gen attempt ${ki + 1} failed:`, err.message);
     }
   }
 
-  console.warn("Using fallback recipe image:", lastError?.message || "timeout budget reached");
+  console.warn("All Gemini image attempts failed — returning fallback image.");
   return aiConfig.defaults.defaultRecipeImage || aiConfig.defaults.placeholderImage;
 }
 
@@ -757,7 +767,7 @@ async function parseDietPlanMarkdown(markdownText) {
             (item) => {
               const text = item.textContent.trim();
               const match = text.match(
-                /^([\d\s/½¼¾⅓⅔⅛⅜⅝⅞]+)?\s*([a-zA-Z\s]+?)(?:\s*\((.*?)\))?$/
+                /^([\d\s/آ½آ¼آ¾â…“â…”â…›â…œâ…‌â…‍]+)?\s*([a-zA-Z\s]+?)(?:\s*\((.*?)\))?$/
               );
               return {
                 quantity: match?.[1]?.trim() || "",
@@ -1070,7 +1080,7 @@ export async function generateDietPlan({
       Ensure each recipe:
       - Aligns with the user's dietary preferences (${preferences}).
       - Meets the calorie targets for each meal/snack.
-      - Includes 7–10 detailed, step-by-step cooking instructions that specify preparation techniques (e.g., chopping methods), cooking methods (e.g., pan type, heat level), exact times or temperatures, sensory cues (e.g., "until crispy"), and serving tips (e.g., "garnish with fresh herbs").
+      - Includes 7â€“10 detailed, step-by-step cooking instructions that specify preparation techniques (e.g., chopping methods), cooking methods (e.g., pan type, heat level), exact times or temperatures, sensory cues (e.g., "until crispy"), and serving tips (e.g., "garnish with fresh herbs").
       - Uses consistent units (e.g., tbsp, tsp, cups).
       - Has bold action verbs in instructions.
       - Is unique compared to previous days, avoiding repeated protein sources (e.g., use chicken, fish, or tofu instead of steak if used recently).
@@ -1102,7 +1112,7 @@ export async function generateDietPlan({
           throw new Error(`Invalid diet plan for Day ${day}`);
         }
 
-        // Validate instructions (7–10 steps)
+        // Validate instructions (7â€“10 steps)
         Object.entries(parsedPlan.days[0].meals).forEach(
           ([mealType, recipe]) => {
             if (
