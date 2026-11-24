@@ -1,21 +1,25 @@
 // AI module configuration
 export default {
-  // API endpoints
+  // API endpoints (updated to HuggingFace Router & current models; uses existing API keys)
   endpoints: {
     huggingFace: {
-      recipeGeneration: 'https://api-inference.huggingface.co/models/flax-community/t5-recipe-generation',
-      dutRecipeGenerator: 'https://api-inference.huggingface.co/models/Ashikan/dut-recipe-generator',
-      gpt2: 'https://api-inference.huggingface.co/models/gpt2',
-      stableDiffusion: 'https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0',
-      fluxDev: 'https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-dev',
-      flux: 'https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-dev'
+      recipeGeneration: 'https://router.huggingface.co/hf-inference/models/flax-community/t5-recipe-generation',
+      dutRecipeGenerator: 'https://router.huggingface.co/hf-inference/models/Ashikan/dut-recipe-generator',
+      gpt2: 'https://router.huggingface.co/hf-inference/models/Qwen/Qwen2.5-7B-Instruct',
+      stableDiffusion: 'https://router.huggingface.co/hf-inference/models/stabilityai/stable-diffusion-xl-base-1.0',
+      fluxDev: 'https://router.huggingface.co/hf-inference/models/black-forest-labs/FLUX.1-dev',
+      flux: 'https://router.huggingface.co/hf-inference/models/black-forest-labs/FLUX.1-schnell'
     },
     openAI: {
       imageGeneration: 'https://api.openai.com/v1/images/generations'
     },
     flask: {
-      recommend: 'http://127.0.0.1:5000/recommend'
+      recommend: process.env.FLASK_RECOMMEND_URL || 'http://127.0.0.1:5000/recommend'
     }
+  },
+  models: {
+    geminiPrimary: 'gemini-2.5-flash',
+    geminiFallback: 'gemini-2.5-flash-lite',
   },
 
   // Retry and timeout settings

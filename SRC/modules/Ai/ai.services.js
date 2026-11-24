@@ -16,7 +16,7 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 // Select the model (e.g., gemini-2.5-flash for text generation)
 const model = genAI.getGenerativeModel({
-  model: "gemini-2.5-flash",
+  model: aiConfig.models?.geminiPrimary || "gemini-2.5-flash",
   apiVersion: "v1",
 });
 
@@ -112,11 +112,12 @@ export async function generateRecipeM3(ingredients) {
 export async function generateRecipeImage(recipeDescription) {
   try {
     const response = await axios.post(
-      aiConfig.endpoints.openai.imageGeneration,
+      aiConfig.endpoints.openAI.imageGeneration,
       {
+        model: "dall-e-3",
         prompt: recipeDescription,
         n: 1,
-        size: "512x512",
+        size: "1024x1024",
       },
       {
         headers: {
@@ -1012,7 +1013,7 @@ export async function generateDietPlan({
   // Initialize Gemini model
   let genAI = new GoogleGenerativeAI(apiKey);
   let model = genAI.getGenerativeModel({
-    model: "gemini-2.5-flash",
+    model: aiConfig.models?.geminiPrimary || "gemini-2.5-flash",
     safetySettings: [
       {
         category: HarmCategory.HARM_CATEGORY_HARASSMENT,
@@ -1216,7 +1217,7 @@ export async function generateDietPlan({
             console.log(`Switching to GEMINI_API_KEY${currentKeyIndex}`);
             genAI = new GoogleGenerativeAI(apiKey);
             model = genAI.getGenerativeModel({
-              model: "gemini-2.5-flash",
+              model: aiConfig.models?.geminiFallback || "gemini-2.5-flash-lite",
               safetySettings: [
                 {
                   category: HarmCategory.HARM_CATEGORY_HARASSMENT,
