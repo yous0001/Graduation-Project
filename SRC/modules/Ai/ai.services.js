@@ -364,119 +364,41 @@ export async function generateImageForGemini(recipeJson, retries = 2) {
     inputs: prompt,
   };
 
-  // Try each API key
-  for (let keyIndex = 0; keyIndex < apiKeys.length; keyIndex++) {
+  const deadline = Date.now() + 4500;
+  const maxKeysToTry = Math.min(apiKeys.length, 2);
+
+  // Try up to 2 API keys within a strict 4.5s overall budget so serverless never hits 504
+  for (let keyIndex = 0; keyIndex < maxKeysToTry; keyIndex++) {
+    const remaining = deadline - Date.now();
+    if (remaining < 800) break;
+
     const apiKey = apiKeys[keyIndex];
-    console.log(`Using API key ${keyIndex + 1} of ${apiKeys.length}`);
+    try {
+      const response = await axios.post(API_URL, data, {
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+          Accept: "image/png",
+        },
+        responseType: "arraybuffer",
+        timeout: Math.min(3500, remaining),
+      });
 
-    // Try each accept type
-    for (let acceptIndex = 0; acceptIndex < retries; acceptIndex++) {
-      const headers = {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-        Accept: acceptTypes[acceptIndex],
-      };
+      const uploadResult = await uploadFileBuffer({
+        buffer: response.data,
+        filename: `${recipeJson.title.replace(/\s+/g, "_").toLowerCase()}.png`,
+        folder: `${process.env.UPLOADS_FOLDER || "reciplore"}/chat-recipes`,
+      });
 
-      // Retry for sleeping model (up to 3 attempts)
-      for (let attempt = 0; attempt < 3; attempt++) {
-        try {
-          // Call Hugging Face Stable Diffusion API with a 6-second timeout
-          const response = await axios.post(API_URL, data, {
-            headers,
-            responseType: "arraybuffer",
-            timeout: 6000,
-          });
-
-          // Log response status for debugging
-          console.log("Hugging Face API response:", {
-            status: response.status,
-            contentType: response.headers["content-type"],
-          });
-
-          // The response.data is already a Buffer
-          const imageBuffer = response.data;
-
-          // Upload the buffer to Cloudinary
-          const uploadResult = await uploadFileBuffer({
-            buffer: imageBuffer,
-            filename: `${recipeJson.title.replace(/\s+/g, "_").toLowerCase()}.${
-              acceptTypes[acceptIndex].split("/")[1]
-            }`,
-            folder: `${process.env.UPLOADS_FOLDER}/chat-recipes`,
-          });
-
-          return uploadResult.secure_url;
-        } catch (error) {
-          console.error(
-            `❌ Attempt ${attempt + 1} with Accept: ${
-              acceptTypes[acceptIndex]
-            } and API key ${keyIndex + 1} failed:`,
-            error.message
-          );
-          lastError = error; // Fixed typo here
-
-          let errorMessage = null;
-          if (error.response?.data instanceof Buffer) {
-            try {
-              errorMessage = JSON.parse(
-                Buffer.from(error.response.data).toString("utf-8")
-              );
-              console.error("Hugging Face API error:", errorMessage);
-            } catch (parseError) {
-              console.error(
-                "Failed to parse error response:",
-                parseError.message
-              );
-            }
-          }
-
-          // Handle rate limit (429) by breaking to try the next API key
-          if (error.response?.status === 429) {
-            console.log(
-              `Rate limit exceeded for API key ${
-                keyIndex + 1
-              }. Trying next key...`
-            );
-            break; // Exit the attempt loop and try the next API key
-          }
-
-          // Handle model sleeping or loading errors
-          if (
-            error.response?.status === 504 ||
-            errorMessage?.error?.includes("model is currently loading") ||
-            errorMessage?.error?.includes("sleeping")
-          ) {
-            console.log(
-              `Model may be sleeping or rate-limited dermal. Retrying after ${
-                attempt + 1
-              }s...`
-            );
-            await new Promise((resolve) =>
-              setTimeout(resolve, (attempt + 1) * 500)
-            );
-            continue;
-          }
-
-          // Other errors: break to try the next accept type
-          break;
-        }
-      }
-
-      // If we broke out due to a 429, skip to the next API key
-      if (lastError?.response?.status === 429) {
-        break;
-      }
-    }
-
-    // Log if all retries for this API key failed
-    if (keyIndex === apiKeys.length - 1) {
-      console.error("All API keys and retries exhausted.");
+      return uploadResult.secure_url;
+    } catch (error) {
+      lastError = error;
+      console.warn(`Image gen attempt ${keyIndex + 1} skipped:`, error.message);
     }
   }
 
-  // Return placeholder URL on failure
-  console.error("Final error:", lastError?.message || "Unknown error");
-  return aiConfig.defaults.placeholderImage;
+  console.warn("Using fallback recipe image:", lastError?.message || "timeout budget reached");
+  return aiConfig.defaults.defaultRecipeImage || aiConfig.defaults.placeholderImage;
 }
 
 // ================================================= GENERATE RECIPE BY MOOD ================================
