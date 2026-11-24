@@ -58,37 +58,12 @@ export const getCategory = async (req, res, next) => {
   return res.status(200).json({ success: true, category });
 };
 
+import { scrapeCategories } from "../../utils/mealdb-scraper.js";
+
 export const addMealDB = async (req, res) => {
-  const user = req.user;
-  const response = await axios.get(
-    `${apiConfig.mealDB.baseUrl}${apiConfig.mealDB.endpoints.categories}`
-  );
-  const insertedCategories = [];
-  for (const category of response.data.categories) {
-    const { strCategory, strCategoryThumb, strCategoryDescription } = category;
-    const slug = slugify(strCategory, { replacement: "_", lower: true });
-    const isCategoryExists = await Category.findOne({ name: slug });
-    if (isCategoryExists) continue;
-    const { secure_url, public_id } = await uploadFile({
-      file: strCategoryThumb,
-      folder: `${process.env.UPLOADS_FOLDER}/Categories/${slug}`,
-    });
-    const categoryObj = {
-      name: slug,
-      description: strCategoryDescription,
-      addedBy: user._id,
-      image: {
-        public_id: public_id,
-        secure_url: secure_url,
-      },
-    };
-    const newCategory = await Category.create(categoryObj);
-    insertedCategories.push(newCategory);
-  }
+  const { inserted: insertedCategories } = await scrapeCategories({ userId: req.user?._id });
   if (insertedCategories.length === 0) {
-    return res
-      .status(200)
-      .json({ success: true, message: "no new categories to be added" });
+    return res.status(200).json({ success: true, message: "no new categories to be added" });
   }
   res.status(201).json({
     success: true,

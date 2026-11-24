@@ -27,32 +27,13 @@ export const getAllCountries = async (req, res) => {
   res.status(200).json({ success: true, message: "All countries", countries });
 };
 
+import { scrapeCountries } from "../../utils/mealdb-scraper.js";
+
 export const addMealDBCountries = async (req, res) => {
-  const user = req.user;
-  const response = await axios.get(
-    `${apiConfig.mealDB.baseUrl}${apiConfig.mealDB.endpoints.areasList}`
-  );
-  const insertedCountries = [];
-
-  for (const country of response.data.meals) {
-    const { strArea } = country;
-    const isCountryExists = await Country.findOne({ name: strArea });
-    if (isCountryExists) continue;
-
-    const countryObj = {
-      name: strArea,
-      createdBy: user._id,
-    };
-    const newCountry = await Country.create(countryObj);
-    insertedCountries.push(newCountry);
-  }
-
+  const { inserted: insertedCountries } = await scrapeCountries({ userId: req.user?._id });
   if (insertedCountries.length === 0) {
-    return res
-      .status(200)
-      .json({ success: true, message: "No new countries to be added" });
+    return res.status(200).json({ success: true, message: "No new countries to be added" });
   }
-
   res.status(201).json({
     success: true,
     message: "Countries added successfully",

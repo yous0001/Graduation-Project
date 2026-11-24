@@ -3,5 +3,6 @@
 export const systemRoles = {
     USER: 'user',
     ADMIN: 'admin',
-    DELIVERY:"deliver"
-}
+    SUPER_ADMIN: 'superadmin',
+    DELIVERY: 'deliver'
+};
