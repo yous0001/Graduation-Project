@@ -14,10 +14,16 @@ import validationConfig from "../Services/options/validation.config.js";
 // Initialize the Gemini API client
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-// Select the model (e.g., gemini-2.5-flash for text generation)
+// Use gemini-2.5-flash with thinkingBudget: 0 for fast <4s serverless responses
 const model = genAI.getGenerativeModel({
   model: aiConfig.models?.geminiPrimary || "gemini-2.5-flash",
-  apiVersion: "v1",
+  generationConfig: {
+    maxOutputTokens: 1000,
+    temperature: 0.7,
+    thinkingConfig: {
+      thinkingBudget: 0,
+    },
+  },
 });
 
 //under development

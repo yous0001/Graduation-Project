@@ -19,7 +19,7 @@ export default {
   },
   models: {
     geminiPrimary: 'gemini-2.5-flash',
-    geminiFallback: 'gemini-2.5-flash-lite',
+    geminiFallback: 'gemini-3.5-flash-lite',
   },
 
   // Retry and timeout settings
