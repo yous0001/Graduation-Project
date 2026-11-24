@@ -142,10 +142,6 @@ export const getRecipes=async(req,res,_next)=>{
                     path:"category",
                     select:"name"
                 },
-                {
-                    path:"ingredients.ingredient",
-                    select:"name image.secure_url _id basePrice appliedPrice stock Average_rating discount"
-                },
             {
                 path:"createdBy",
                 select:"username profileImage.secure_url -_id"
@@ -156,10 +152,12 @@ export const getRecipes=async(req,res,_next)=>{
         const recipes = await apiFeatures.execute();
         if(!user) return res.status(200).json({success:true,recipes})
         
+        const favSet = new Set((user.favoriteRecipes || []).map((id) => id.toString()));
         for (let i = 0; i < recipes.docs.length; i++) {
-            const recipeObj = recipes.docs[i].toObject(); 
-            recipeObj.isFavourite = user.favoriteRecipes.includes(recipeObj._id.toString());
-            recipes.docs[i] = recipeObj; 
+            const doc = recipes.docs[i];
+            const recipeObj = typeof doc.toObject === "function" ? doc.toObject() : { ...doc };
+            recipeObj.isFavourite = favSet.has(recipeObj._id.toString());
+            recipes.docs[i] = recipeObj;
         }
         res.status(200).json({
             success: true,
