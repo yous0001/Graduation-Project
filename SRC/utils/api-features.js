@@ -91,10 +91,24 @@ export class ApiFeatures {
     }
 
     sort() {
+        // Whitelist of sortable fields to prevent injection and guarantee index usage
+        const SORTABLE = new Set([
+            'createdAt', '-createdAt',
+            'views', '-views',
+            'Average_rating', '-Average_rating',
+            'name', '-name',
+            'appliedPrice', '-appliedPrice',
+            'basePrice', '-basePrice',
+            'stock', '-stock',
+            'discount', '-discount',
+            'updatedAt', '-updatedAt',
+        ]);
+
         if (this.queryString.sort) {
-            this.options.sort = this.queryString.sort.split(",").join(" ");
+            const parts = this.queryString.sort.split(',').filter((p) => SORTABLE.has(p.trim()));
+            this.options.sort = parts.length > 0 ? parts.join(' ') : '-createdAt _id';
         } else {
-            this.options.sort = "-views _id"; 
+            this.options.sort = '-views _id';
         }
         return this;
     }
